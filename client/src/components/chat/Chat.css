@@ -1,0 +1,15 @@
+.conteiner {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.messages {
+  width: 100%;
+  height: 75vh;
+  overflow: auto;
+  /* Increase/decrease this value for cross-browser compatibility: */
+  padding-right: 17px;
+  /* So the width will be 100% + 17px: */
+  box-sizing: content-box;
+}
