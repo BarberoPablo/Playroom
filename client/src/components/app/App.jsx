@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Breadcrumb, Layout, Input, theme } from "antd";
 import Chat from "../chat/Chat";
+import { useNavigate } from "react-router-dom";
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -9,6 +10,14 @@ const App = () => {
   const {
     token: { colorBgContainer },
   } = theme.useToken();
+  const storage = window.localStorage;
+  let navigate = useNavigate();
+
+  const handleUsernameChange = (e) => {
+    e.preventDefault();
+    storage.removeItem("username");
+    navigate("/");
+  };
 
   return (
     <Layout
@@ -32,7 +41,7 @@ const App = () => {
             background: colorBgContainer,
           }}
         >
-          HEADER
+          <button onClick={(e) => handleUsernameChange(e)}> Change username</button>
         </Header>
         <Content
           style={{
