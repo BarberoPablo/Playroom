@@ -21,8 +21,8 @@ app.use(morgan("dev"));
 io.on("connection", (socket) => {
   //console.log(`USER CONNECTED: ${socket.id}`);
 
-  socket.on("message", (message, room) => {
-    const messageAndUser = { message, from: socket.id };
+  socket.on("message", (message, username, room) => {
+    const messageAndUser = { message, from: username };
     if (room === "") {
       io.sockets.emit("message", messageAndUser);
     } else {
