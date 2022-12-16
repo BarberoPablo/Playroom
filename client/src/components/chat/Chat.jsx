@@ -10,6 +10,8 @@ const socket = io("http://localhost:3001");
 function Chat() {
   const [message, setMessage] = useState("");
   const [room, setRoom] = useState("");
+  const storage = window.localStorage;
+  const [username, setUsername] = useState(storage.getItem("username"));
   const [messages, setMessages] = useState([]);
 
   useEffect(() => {
@@ -40,7 +42,7 @@ function Chat() {
   const handleSubmitMessage = (e) => {
     e.preventDefault();
     if (message !== "") {
-      socket.emit("message", message, room);
+      socket.emit("message", message, username, room);
       setMessage("");
     }
   };
@@ -83,8 +85,6 @@ function Chat() {
             type="text"
             onChange={(e) => handleMessage(e)}
           />
-          {/* <input value={message} type="text" onChange={(e) => handleMessage(e)} /> */}
-          {/* <button>Send</button> */}
         </form>
 
         <form onSubmit={(e) => handleJoinRoom(e)}>
