@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "antd";
 import "./Home.css";
+import { socket } from "../../configuration";
 
 const Home = () => {
   const { TextArea } = Input;
@@ -12,9 +13,7 @@ const Home = () => {
 
   useEffect(() => {
     const user = storage.getItem("username");
-    console.log(user);
     if (user) {
-      console.log("Su usuario es: ", user);
       navigate("/play");
     }
   }, [newUsername]);
@@ -24,12 +23,13 @@ const Home = () => {
   };
 
   const handleSubmit = () => {
-    if (username !== "" && username !== "Nice try" && username.length <= 20) {
+    if (username !== "" && username !== "Please select a name" && username.length <= 20) {
       storage.setItem("username", username);
-      console.log("Username: ", storage.getItem("username"));
+      socket.emit("new-username", username);
+
       setNewUsername(!newUsername);
     } else {
-      setUsername("Nice try");
+      setUsername("Please select a name");
     }
   };
 

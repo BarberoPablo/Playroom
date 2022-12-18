@@ -2,21 +2,30 @@ import React, { useState } from "react";
 import { Breadcrumb, Layout, Input, theme } from "antd";
 import Chat from "../chat/Chat";
 import { useNavigate } from "react-router-dom";
-
-const { Header, Content, Footer, Sider } = Layout;
+import TicTacToe from "../TicTacToe/TicTacToe";
 
 const App = () => {
+  const { Header, Content, Footer, Sider } = Layout;
   const [collapsed, setCollapsed] = useState(false);
   const {
     token: { colorBgContainer },
   } = theme.useToken();
   const storage = window.localStorage;
+
   let navigate = useNavigate();
+
+  const games = [<TicTacToe />];
+  const [renderGame, setRenderGame] = useState(-1);
 
   const handleUsernameChange = (e) => {
     e.preventDefault();
     storage.removeItem("username");
     navigate("/");
+  };
+
+  const handlePlayTicTacToe = (e) => {
+    e.preventDefault();
+    setRenderGame(0);
   };
 
   return (
@@ -42,6 +51,8 @@ const App = () => {
           }}
         >
           <button onClick={(e) => handleUsernameChange(e)}> Change username</button>
+
+          <button onClick={(e) => handlePlayTicTacToe(e)}> Play TicTacToe</button>
         </Header>
         <Content
           style={{
@@ -52,10 +63,7 @@ const App = () => {
             style={{
               margin: "16px 0",
             }}
-          >
-            <Breadcrumb.Item>User</Breadcrumb.Item>
-            <Breadcrumb.Item>Bill</Breadcrumb.Item>
-          </Breadcrumb>
+          />
           <div
             style={{
               padding: 24,
@@ -63,7 +71,7 @@ const App = () => {
               background: colorBgContainer,
             }}
           >
-            Bill is a cat.
+            {renderGame === -1 ? <h1>Select a game to play!</h1> : games[renderGame]}
           </div>
         </Content>
         <Footer

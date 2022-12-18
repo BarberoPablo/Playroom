@@ -18,8 +18,15 @@ const io = new SocketServer(server, {
 app.use(cors());
 app.use(morgan("dev"));
 
+const users = {};
+
 io.on("connection", (socket) => {
-  //console.log(`USER CONNECTED: ${socket.id}`);
+  console.log(`USER CONNECTED: ${socket.id}`);
+  users[socket.id] = undefined;
+
+  socket.on("new-username", (username) => {
+    users[socket.id] = username;
+  });
 
   socket.on("message", (message, username, room) => {
     const messageAndUser = { message, from: username };
@@ -34,6 +41,15 @@ io.on("connection", (socket) => {
   socket.on("join-room", (room, cb) => {
     socket.join(room);
     cb(`Joined room "${room}"`);
+  });
+
+  socket.on("online-users", () => {
+    io.sockets.to(socket.id).emit("online-users", Object.values(users));
+  });
+
+  socket.on("disconnect", function () {
+    delete users[socket.id];
+    console.log("remaining users:", users);
   });
 });
 
