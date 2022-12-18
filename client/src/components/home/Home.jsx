@@ -34,7 +34,7 @@ const Home = () => {
   };
 
   return (
-    <div className="conteiner">
+    <div className="home-conteiner">
       <Input
         className="username"
         placeholder="Enter your username"
