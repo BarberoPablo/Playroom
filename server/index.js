@@ -18,14 +18,16 @@ const io = new SocketServer(server, {
 app.use(cors());
 app.use(morgan("dev"));
 
+/* users:
+  { "Pablo": "Alkjvlksfg_bvd234", "Alkjvlksfg_bvd234": "Jesus", "Alkjvlksfg_bvd234": undefined}
+*/
 const users = {};
 
 io.on("connection", (socket) => {
   console.log(`USER CONNECTED: ${socket.id}`);
-  users[socket.id] = undefined;
 
   socket.on("new-username", (username) => {
-    users[socket.id] = username;
+    users[username] = socket.id;
   });
 
   socket.on("message", (message, username, room) => {
@@ -44,9 +46,37 @@ io.on("connection", (socket) => {
   });
 
   socket.on("online-users", () => {
-    io.sockets.to(socket.id).emit("online-users", Object.values(users));
+    io.sockets.to(socket.id).emit("online-users", users);
   });
 
+  //  Challenge user
+  socket.on("challenge-user", (challenged, username) => {
+    const challengedId = users[challenged];
+
+    if (challengedId) {
+      const match = {
+        challenged: {
+          id: challengedId,
+          username: challenged,
+        },
+        challenger: {
+          id: socket.id,
+          username,
+        },
+      };
+      console.log("Match:", match);
+      console.log(challengedId);
+      socket.emit("challenge-user", match);
+      //io.sockets.to(challengedId).emit("challenge-user", match);
+    }
+  });
+
+  /* //  TicTacToe events
+  socket.on("update-tictactoe", (message) => {
+    socket.emit
+  }); */
+
+  //  Socket disconnect
   socket.on("disconnect", function () {
     delete users[socket.id];
     console.log("remaining users:", users);

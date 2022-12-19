@@ -5,7 +5,6 @@ import "./Home.css";
 import { socket } from "../../configuration";
 
 const Home = () => {
-  const { TextArea } = Input;
   const [username, setUsername] = useState("");
   const [newUsername, setNewUsername] = useState(false);
   const storage = window.localStorage;
