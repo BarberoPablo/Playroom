@@ -1,11 +1,8 @@
 import { useState, useEffect } from "react";
-import io from "socket.io-client";
 import { Input } from "antd";
 import "./Chat.css";
-
+import { socket } from "../../configuration";
 //  socket is the bridge connection between the server and client
-//const socket = io(configuration.WSSURL || "http://localhost:3001");
-const socket = io("http://localhost:3001");
 
 function Chat() {
   const [message, setMessage] = useState("");
