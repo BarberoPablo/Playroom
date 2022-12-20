@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Breadcrumb, Layout, Modal, theme } from "antd";
+import { Breadcrumb, Layout, Modal, theme, message } from "antd";
 import Chat from "../Chat/Chat";
 import { useNavigate } from "react-router-dom";
 import TicTacToe from "../TicTacToe/TicTacToe";
@@ -14,8 +14,10 @@ const App = () => {
   const [challengeUserButton, setChallengeUserButton] = useState(true);
   const [match, setMatch] = useState({});
   const games = ["TicTacToe", "Tetris"];
-  const [renderGame, setRenderGame] = useState(-1);
   const [gameSelected, setGameSelected] = useState(undefined);
+  const [pendingResponse, setPendingResponse] = useState(false);
+  const [messageApi, contextHolder] = message.useMessage();
+
   const storage = window.localStorage;
 
   let navigate = useNavigate();
@@ -28,11 +30,6 @@ const App = () => {
     e.preventDefault();
     storage.removeItem("username");
     navigate("/");
-  };
-
-  const handlePlayTicTacToe = (e) => {
-    e.preventDefault();
-    setRenderGame(0);
   };
 
   useEffect(() => {
@@ -52,9 +49,14 @@ const App = () => {
     };
 
     socket.on("new-online-user", allUsers);
+    return () => {
+      socket.off("online-users", getOnlineUsers);
+      socket.off("new-online-user", allUsers);
+    };
+  }, [onlineUsers.length]);
 
+  useEffect(() => {
     //  Challenge user
-
     const incomingChallenge = (match) => {
       setMatch(match);
       setModalText(`You have been challenged by ${match.challenger.username} to a game of ${match.game}`);
@@ -63,12 +65,26 @@ const App = () => {
 
     socket.on("challenge-user", incomingChallenge);
 
-    return () => {
-      socket.off("online-users", getOnlineUsers);
-      socket.off("challenge-user", incomingChallenge);
-      socket.off("new-online-user", allUsers);
+    //  Connect to room after challenge is accepted
+    const joinPlaroom = (room) => {
+      socket.emit("join-room", room);
     };
-  }, [onlineUsers.length]);
+
+    socket.on("join-playroom", joinPlaroom);
+
+    //  Prueba
+    const msg = (message) => {
+      console.log(message);
+    };
+
+    socket.on("prueba", msg);
+
+    return () => {
+      socket.off("join-playroom", joinPlaroom);
+      socket.off("prueba", msg);
+      socket.off("challenge-user", incomingChallenge);
+    };
+  }, []);
 
   const closeModal = () => {
     setOpenChallengeModal(false);
@@ -76,7 +92,11 @@ const App = () => {
   };
 
   const acceptChallenge = () => {
-    socket.emit("chellenge-accepted", match);
+    const room = match.challenger.id + match.challenged.id;
+
+    socket.emit("join-room", room);
+    socket.emit("challenge-accepted", room, match.challenger.id);
+
     setMatch({});
     setOpenChallengeModal(false);
   };
@@ -88,12 +108,37 @@ const App = () => {
   };
 
   const handleChallengeUser = (e) => {
-    e.preventDefault();
-    //loading popup message:
-    console.log(`You "${storage.getItem("username")}" have chellenged:`, e.target.value);
-
-    socket.emit("challenge-user", gameSelected, e.target.value, storage.getItem("username"));
+    if (!pendingResponse) {
+      e.preventDefault();
+      console.log(`You "${storage.getItem("username")}" have chellenged:`, e.target.value);
+      socket.emit("challenge-user", gameSelected, e.target.value, storage.getItem("username"));
+      setPendingResponse(true);
+      //loading popup message:
+      console.log(match);
+      messageApi.open({
+        type: "loading",
+        content: `Waiting for ${e.target.value} to respond...`,
+        duration: 0,
+      });
+    }
   };
+
+  useEffect(() => {
+    //  Challenge user
+    const challengeResponse = (match) => {
+      messageApi.destroy;
+      setPendingResponse(true);
+      setMatch(match);
+      setModalText(`You have been challenged by ${match.challenger.username} to a game of ${match.game}`);
+      setOpenChallengeModal(true);
+    };
+
+    socket.on("challenge-response", challengeResponse);
+
+    return () => {
+      socket.off("challenge-response", challengeResponse);
+    };
+  }, [pendingResponse]);
 
   return (
     <Layout
@@ -118,8 +163,6 @@ const App = () => {
           }}
         >
           <button onClick={(e) => handleUsernameChange(e)}> Change username</button>
-
-          <button onClick={(e) => handlePlayTicTacToe(e)}> Play TicTacToe</button>
         </Header>
         <Content
           style={{
@@ -138,7 +181,7 @@ const App = () => {
               background: colorBgContainer,
             }}
           >
-            {renderGame === -1 ? (
+            {
               <div>
                 <h1>Select a game to play!</h1>
                 {games.length > 0 &&
@@ -147,7 +190,7 @@ const App = () => {
                       {game}
                     </button>
                   ))}
-                <h1> Challenge a user!</h1>
+                <h1>Challenge a user!</h1>
                 {
                   //challengeUserButton
                   onlineUsers.length > 0 &&
@@ -164,10 +207,9 @@ const App = () => {
                       );
                     })
                 }
+                {contextHolder}
               </div>
-            ) : (
-              games[renderGame]
-            )}
+            }
 
             <Modal
               title="You have been challenged!"

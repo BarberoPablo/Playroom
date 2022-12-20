@@ -43,7 +43,10 @@ io.on("connection", (socket) => {
 
   socket.on("join-room", (room, cb) => {
     socket.join(room);
-    cb(`Joined room "${room}"`);
+    if (cb) {
+      cb(`Joined room "${room}"`);
+    }
+    io.to(room).emit("prueba", "You are all connected to the same room");
   });
 
   socket.on("online-users", () => {
@@ -66,19 +69,24 @@ io.on("connection", (socket) => {
           username,
         },
       };
-      //socket.emit("challenge-user", match);
       io.to(challengedId).emit("challenge-user", match);
     }
   });
 
-  socket.on("chellenge-accepted", (match) => {
-    //  Conectar ambos usuarios a una room, mandar un mensaje para que se redireccionen al juego
-    //  ahora el chat es solo entre ellos dos
+  socket.on("challenge-accepted", (room, challengerId) => {
+    //  Challenged user is already connected to the room
+    //  Lets say to the challenger user to connect to the room
+    // user conection: /////////////////////////////////////////////////////////
+
+    io.to(challengerId).emit("join-playroom", room);
+
+    //io.to(room).emit("prueba", "You are all connected to the same room");
   });
-  /* //  TicTacToe events
+
+  //  TicTacToe events
   socket.on("update-tictactoe", (message) => {
-    socket.emit
-  }); */
+    socket.emit;
+  });
 
   //  Socket disconnect
   socket.on("disconnect", function () {
