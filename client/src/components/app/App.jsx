@@ -8,19 +8,21 @@ import { socket } from "../../configuration";
 const App = () => {
   const { Header, Content, Footer, Sider } = Layout;
   const [collapsed, setCollapsed] = useState(false);
+  const [onlineUsers, setOnlineUsers] = useState([]);
   const [openChallengeModal, setOpenChallengeModal] = useState(false);
   const [modalText, setModalText] = useState("");
+  const [challengeUserButton, setChallengeUserButton] = useState(true);
   const [match, setMatch] = useState({});
-
-  const {
-    token: { colorBgContainer },
-  } = theme.useToken();
+  const games = ["TicTacToe", "Tetris"];
+  const [renderGame, setRenderGame] = useState(-1);
+  const [gameSelected, setGameSelected] = useState(undefined);
   const storage = window.localStorage;
 
   let navigate = useNavigate();
 
-  const games = [<TicTacToe />];
-  const [renderGame, setRenderGame] = useState(-1);
+  const {
+    token: { colorBgContainer },
+  } = theme.useToken();
 
   const handleUsernameChange = (e) => {
     e.preventDefault();
@@ -34,29 +36,63 @@ const App = () => {
   };
 
   useEffect(() => {
-    const challengeResponse = (match) => {
-      console.log("You have been challenged", match);
+    //  Online users
+    socket.emit("online-users");
+
+    const getOnlineUsers = (users) => {
+      const usersOnline = Object.keys(users).filter((user) => user !== storage.getItem("username"));
+      setOnlineUsers(usersOnline);
+    };
+
+    socket.on("online-users", getOnlineUsers);
+
+    //  New online user
+    const allUsers = (message) => {
+      setOnlineUsers(message);
+    };
+
+    socket.on("new-online-user", allUsers);
+
+    //  Challenge user
+
+    const incomingChallenge = (match) => {
       setMatch(match);
-      //window.alert(`You have been challenged by: ${match.challenger.username} GAME: ${match.game}`);
-      setModalText(`You have been challenged by: ${match.challenger.username} GAME: ${match.game}`);
+      setModalText(`You have been challenged by ${match.challenger.username} to a game of ${match.game}`);
       setOpenChallengeModal(true);
     };
 
-    socket.on("challenge-user", challengeResponse);
+    socket.on("challenge-user", incomingChallenge);
 
     return () => {
-      socket.off("challenge-user", challengeResponse);
+      socket.off("online-users", getOnlineUsers);
+      socket.off("challenge-user", incomingChallenge);
+      socket.off("new-online-user", allUsers);
     };
-  }, []);
+  }, [onlineUsers.length]);
 
   const closeModal = () => {
     setOpenChallengeModal(false);
+    setMatch({});
   };
 
   const acceptChallenge = () => {
     socket.emit("chellenge-accepted", match);
     setMatch({});
     setOpenChallengeModal(false);
+  };
+
+  const handlePlayGame = (e) => {
+    e.preventDefault();
+    setChallengeUserButton(false);
+    setGameSelected(e.target.innerHTML);
+  };
+
+  const handleChallengeUser = (e) => {
+    e.preventDefault();
+    //loading popup message:
+    console.log(`You "${storage.getItem("username")}" have chellenged:`, e.target.value);
+
+    socket.emit("challenge-user", gameSelected, e.target.value, storage.getItem("username"));
   };
 
   return (
@@ -102,7 +138,36 @@ const App = () => {
               background: colorBgContainer,
             }}
           >
-            {renderGame === -1 ? <h1>Select a game to play!</h1> : games[renderGame]}
+            {renderGame === -1 ? (
+              <div>
+                <h1>Select a game to play!</h1>
+                {games.length > 0 &&
+                  games.map((game) => (
+                    <button key={game} onClick={(e) => handlePlayGame(e)}>
+                      {game}
+                    </button>
+                  ))}
+                <h1> Challenge a user!</h1>
+                {
+                  //challengeUserButton
+                  onlineUsers.length > 0 &&
+                    onlineUsers.map((user) => {
+                      return (
+                        <button
+                          disabled={challengeUserButton}
+                          key={user}
+                          value={user}
+                          onClick={(e) => handleChallengeUser(e)}
+                        >
+                          {user}
+                        </button>
+                      );
+                    })
+                }
+              </div>
+            ) : (
+              games[renderGame]
+            )}
 
             <Modal
               title="You have been challenged!"

@@ -28,6 +28,7 @@ io.on("connection", (socket) => {
 
   socket.on("new-username", (username) => {
     users[username] = socket.id;
+    socket.broadcast.emit("new-online-user", users);
   });
 
   socket.on("message", (message, username, room) => {
@@ -70,6 +71,10 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("chellenge-accepted", (match) => {
+    //  Conectar ambos usuarios a una room, mandar un mensaje para que se redireccionen al juego
+    //  ahora el chat es solo entre ellos dos
+  });
   /* //  TicTacToe events
   socket.on("update-tictactoe", (message) => {
     socket.emit
@@ -77,8 +82,9 @@ io.on("connection", (socket) => {
 
   //  Socket disconnect
   socket.on("disconnect", function () {
-    delete users[socket.id];
-    console.log("remaining users:", users);
+    const username = Object.keys(users).find((user) => users[user] === socket.id);
+    delete users[username];
+    socket.broadcast.emit("new-online-user", users);
   });
 });
 
