@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Breadcrumb, Layout, Input, theme } from "antd";
-import Chat from "../chat/Chat";
+import Chat from "../Chat/Chat";
 import { useNavigate } from "react-router-dom";
 import TicTacToe from "../TicTacToe/TicTacToe";
+import { socket } from "../../configuration";
 
 const App = () => {
   const { Header, Content, Footer, Sider } = Layout;
@@ -27,6 +28,19 @@ const App = () => {
     e.preventDefault();
     setRenderGame(0);
   };
+
+  useEffect(() => {
+    const challengeResponse = (match) => {
+      console.log("You have been challenged", match);
+      window.alert(`You have been challenged by: ${match.challenger.username}`);
+    };
+
+    socket.on("challenge-user", challengeResponse);
+
+    return () => {
+      socket.off("challenge-user", challengeResponse);
+    };
+  }, []);
 
   return (
     <Layout

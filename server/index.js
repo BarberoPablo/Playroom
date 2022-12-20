@@ -19,7 +19,7 @@ app.use(cors());
 app.use(morgan("dev"));
 
 /* users:
-  { "Pablo": "Alkjvlksfg_bvd234", "Alkjvlksfg_bvd234": "Jesus", "Alkjvlksfg_bvd234": undefined}
+  { "username1": "socket1", "username2": "socket2", "username3": "socket3",}
 */
 const users = {};
 
@@ -64,10 +64,8 @@ io.on("connection", (socket) => {
           username,
         },
       };
-      console.log("Match:", match);
-      console.log(challengedId);
-      socket.emit("challenge-user", match);
-      //io.sockets.to(challengedId).emit("challenge-user", match);
+      //socket.emit("challenge-user", match);
+      io.to(challengedId).emit("challenge-user", match);
     }
   });
 

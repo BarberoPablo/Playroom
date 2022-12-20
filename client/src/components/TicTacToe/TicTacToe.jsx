@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { useInsertionEffect } from "react";
 import { socket } from "../../configuration";
 
 const TicTacToe = () => {
   const [users, setUsers] = useState([]);
-  const [change, setChange] = useState(false);
   const storage = window.localStorage;
 
   useEffect(() => {
@@ -14,24 +12,23 @@ const TicTacToe = () => {
       const allUsernames = Object.keys(users).filter((user) => user !== storage.getItem("username"));
       setUsers(allUsernames);
     };
+
     const challengeResponse = (match) => {
-      console.log("Challenged", match);
+      console.log("You have been challenged", match);
+      window.alert(`You have been challenged by: ${match.challenger.username}`);
     };
 
     socket.on("online-users", getOnlineUsers);
 
-    socket.on("challenge-user", challengeResponse);
-
     return () => {
       socket.off("online-users", getOnlineUsers);
-      socket.off("online-users", challengeResponse);
     };
   }, []);
 
   const handleClick = (e) => {
     e.preventDefault();
-    console.log("Emit challenge", e.target.value, storage.getItem("username"));
     socket.emit("challenge-user", e.target.value, storage.getItem("username"));
+    console.log(`You "${storage.getItem("username")}" have chellenged:`, e.target.value);
   };
 
   return (
@@ -45,8 +42,6 @@ const TicTacToe = () => {
             </button>
           );
         })}
-
-      {change && <div>CAMBIO </div>}
     </div>
   );
 };
