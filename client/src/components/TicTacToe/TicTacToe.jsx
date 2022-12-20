@@ -25,9 +25,9 @@ const TicTacToe = () => {
     };
   }, []);
 
-  const handleClick = (e) => {
+  const handleChallengeUser = (e) => {
     e.preventDefault();
-    socket.emit("challenge-user", e.target.value, storage.getItem("username"));
+    socket.emit("challenge-user", "TicTacToe", e.target.value, storage.getItem("username"));
     console.log(`You "${storage.getItem("username")}" have chellenged:`, e.target.value);
   };
 
@@ -35,9 +35,9 @@ const TicTacToe = () => {
     <div>
       <h1> Select a user to play with</h1>
       {users.length > 0 &&
-        users.map((user, index) => {
+        users.map((user) => {
           return (
-            <button key={user} value={user} onClick={(e) => handleClick(e)}>
+            <button key={user} value={user} onClick={(e) => handleChallengeUser(e)}>
               {user}
             </button>
           );

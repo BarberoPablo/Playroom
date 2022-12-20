@@ -50,11 +50,12 @@ io.on("connection", (socket) => {
   });
 
   //  Challenge user
-  socket.on("challenge-user", (challenged, username) => {
+  socket.on("challenge-user", (game, challenged, username) => {
     const challengedId = users[challenged];
 
     if (challengedId) {
       const match = {
+        game,
         challenged: {
           id: challengedId,
           username: challenged,

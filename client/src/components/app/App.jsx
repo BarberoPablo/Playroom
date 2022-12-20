@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Breadcrumb, Layout, Input, theme } from "antd";
+import { Breadcrumb, Layout, Modal, theme } from "antd";
 import Chat from "../Chat/Chat";
 import { useNavigate } from "react-router-dom";
 import TicTacToe from "../TicTacToe/TicTacToe";
@@ -8,6 +8,10 @@ import { socket } from "../../configuration";
 const App = () => {
   const { Header, Content, Footer, Sider } = Layout;
   const [collapsed, setCollapsed] = useState(false);
+  const [openChallengeModal, setOpenChallengeModal] = useState(false);
+  const [modalText, setModalText] = useState("");
+  const [match, setMatch] = useState({});
+
   const {
     token: { colorBgContainer },
   } = theme.useToken();
@@ -32,7 +36,10 @@ const App = () => {
   useEffect(() => {
     const challengeResponse = (match) => {
       console.log("You have been challenged", match);
-      window.alert(`You have been challenged by: ${match.challenger.username}`);
+      setMatch(match);
+      //window.alert(`You have been challenged by: ${match.challenger.username} GAME: ${match.game}`);
+      setModalText(`You have been challenged by: ${match.challenger.username} GAME: ${match.game}`);
+      setOpenChallengeModal(true);
     };
 
     socket.on("challenge-user", challengeResponse);
@@ -41,6 +48,16 @@ const App = () => {
       socket.off("challenge-user", challengeResponse);
     };
   }, []);
+
+  const closeModal = () => {
+    setOpenChallengeModal(false);
+  };
+
+  const acceptChallenge = () => {
+    socket.emit("chellenge-accepted", match);
+    setMatch({});
+    setOpenChallengeModal(false);
+  };
 
   return (
     <Layout
@@ -86,6 +103,15 @@ const App = () => {
             }}
           >
             {renderGame === -1 ? <h1>Select a game to play!</h1> : games[renderGame]}
+
+            <Modal
+              title="You have been challenged!"
+              open={openChallengeModal}
+              onOk={acceptChallenge}
+              onCancel={closeModal}
+            >
+              <p>{modalText}</p>
+            </Modal>
           </div>
         </Content>
         <Footer
