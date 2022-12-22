@@ -7,19 +7,22 @@ import { socket } from "../../configuration";
 
 const App = () => {
   const { Header, Content, Footer, Sider } = Layout;
+  //const games = ["TicTacToe", "Tetris"];
+  const games = {
+    TicTacToe: <TicTacToe />,
+    Tetris: <div> hola </div>,
+  };
   const [collapsed, setCollapsed] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [openChallengeModal, setOpenChallengeModal] = useState(false);
   const [modalText, setModalText] = useState("");
   const [challengeUserButton, setChallengeUserButton] = useState(true);
   const [match, setMatch] = useState({});
-  const games = ["TicTacToe", "Tetris"];
   const [gameSelected, setGameSelected] = useState(undefined);
   const [pendingResponse, setPendingResponse] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
-
+  const [renderGame, setRenderGame] = useState("");
   const storage = window.localStorage;
-
   let navigate = useNavigate();
 
   const {
@@ -32,6 +35,7 @@ const App = () => {
     navigate("/");
   };
 
+  //  ONLINE USERS
   useEffect(() => {
     //  Online users
     socket.emit("online-users");
@@ -47,30 +51,48 @@ const App = () => {
     const allUsers = (message) => {
       setOnlineUsers(message);
     };
-
     socket.on("new-online-user", allUsers);
+
+    //  Unmount component
     return () => {
       socket.off("online-users", getOnlineUsers);
       socket.off("new-online-user", allUsers);
     };
   }, [onlineUsers.length]);
 
+  //  CHALLENGES
   useEffect(() => {
     //  Challenge user
     const incomingChallenge = (match) => {
       setMatch(match);
-      setModalText(`You have been challenged by ${match.challenger.username} to a game of ${match.game}`);
+      setModalText(`The player ${match.challenger.username} has challenge you to a game of ${match.game}`);
       setOpenChallengeModal(true);
     };
 
     socket.on("challenge-user", incomingChallenge);
 
     //  Connect to room after challenge is accepted
-    const joinPlaroom = (room) => {
+    const joinPlaroom = (room, match) => {
+      //  Challenger now has access the match
+      setMatch(match);
       socket.emit("join-room", room);
+      setRenderGame(match.game);
     };
 
     socket.on("join-playroom", joinPlaroom);
+
+    //  Denied
+    const challengeDenied = (match) => {
+      setMatch(match);
+      messageApi.destroy();
+      setPendingResponse(false);
+      messageApi.open({
+        type: "error",
+        content: `"${match.challenged.username} doesn't want to play ${match.game}`,
+      });
+    };
+
+    socket.on("challenge-denied", challengeDenied);
 
     //  Prueba
     const msg = (message) => {
@@ -83,22 +105,41 @@ const App = () => {
       socket.off("join-playroom", joinPlaroom);
       socket.off("prueba", msg);
       socket.off("challenge-user", incomingChallenge);
+      socket.off("challenge-denied", challengeDenied);
     };
   }, []);
 
+  //  RENDER GAME
+  useEffect(() => {
+    const renderVideogame = (room, match) => {
+      setRenderGame(match.game);
+    };
+
+    if (match?.game) {
+      socket.on("play", renderVideogame);
+    }
+
+    return () => {
+      socket.off("play", renderVideogame);
+    };
+  }, [renderGame]);
+
   const closeModal = () => {
     setOpenChallengeModal(false);
-    setMatch({});
+    socket.emit("challenge-denied", match);
+    //setMatch({});
   };
 
   const acceptChallenge = () => {
     const room = match.challenger.id + match.challenged.id;
 
     socket.emit("join-room", room);
-    socket.emit("challenge-accepted", room, match.challenger.id);
+    console.log("le mando el match", match);
+    socket.emit("challenge-accepted", room, match);
+    //socket.emit("challenge-accepted", { room, match });
 
-    setMatch({});
     setOpenChallengeModal(false);
+    setRenderGame(match.game);
   };
 
   const handlePlayGame = (e) => {
@@ -110,11 +151,8 @@ const App = () => {
   const handleChallengeUser = (e) => {
     if (!pendingResponse) {
       e.preventDefault();
-      console.log(`You "${storage.getItem("username")}" have chellenged:`, e.target.value);
       socket.emit("challenge-user", gameSelected, e.target.value, storage.getItem("username"));
       setPendingResponse(true);
-      //loading popup message:
-      console.log(match);
       messageApi.open({
         type: "loading",
         content: `Waiting for ${e.target.value} to respond...`,
@@ -122,23 +160,6 @@ const App = () => {
       });
     }
   };
-
-  useEffect(() => {
-    //  Challenge user
-    const challengeResponse = (match) => {
-      messageApi.destroy;
-      setPendingResponse(true);
-      setMatch(match);
-      setModalText(`You have been challenged by ${match.challenger.username} to a game of ${match.game}`);
-      setOpenChallengeModal(true);
-    };
-
-    socket.on("challenge-response", challengeResponse);
-
-    return () => {
-      socket.off("challenge-response", challengeResponse);
-    };
-  }, [pendingResponse]);
 
   return (
     <Layout
@@ -163,6 +184,9 @@ const App = () => {
           }}
         >
           <button onClick={(e) => handleUsernameChange(e)}> Change username</button>
+          <button> Profile</button>
+          <button> Achievements</button>
+          <button> Logout</button>
         </Header>
         <Content
           style={{
@@ -181,11 +205,13 @@ const App = () => {
               background: colorBgContainer,
             }}
           >
-            {
+            {renderGame ? (
+              games[renderGame]
+            ) : (
               <div>
                 <h1>Select a game to play!</h1>
-                {games.length > 0 &&
-                  games.map((game) => (
+                {Object.keys(games).length > 0 &&
+                  Object.keys(games).map((game) => (
                     <button key={game} onClick={(e) => handlePlayGame(e)}>
                       {game}
                     </button>
@@ -209,7 +235,7 @@ const App = () => {
                 }
                 {contextHolder}
               </div>
-            }
+            )}
 
             <Modal
               title="You have been challenged!"

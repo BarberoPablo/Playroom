@@ -73,14 +73,18 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("challenge-accepted", (room, challengerId) => {
+  socket.on("challenge-denied", (match) => {
+    io.to(match.challenger.id).emit("challenge-denied", match);
+  });
+
+  socket.on("challenge-accepted", (room, match) => {
     //  Challenged user is already connected to the room
     //  Lets say to the challenger user to connect to the room
-    // user conection: /////////////////////////////////////////////////////////
+    io.to(match.challenger.id).emit("join-playroom", room, match);
 
-    io.to(challengerId).emit("join-playroom", room);
-
-    //io.to(room).emit("prueba", "You are all connected to the same room");
+    //  Say to both users to render the game
+    io.to(match.challenger.id).emit("play", room, match);
+    io.to(socket.id).emit("play", room, match);
   });
 
   //  TicTacToe events
