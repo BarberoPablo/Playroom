@@ -8,10 +8,6 @@ import { socket } from "../../configuration";
 const App = () => {
   const { Header, Content, Footer, Sider } = Layout;
   //const games = ["TicTacToe", "Tetris"];
-  const games = {
-    TicTacToe: <TicTacToe />,
-    Tetris: <div> hola </div>,
-  };
   const [collapsed, setCollapsed] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [openChallengeModal, setOpenChallengeModal] = useState(false);
@@ -24,6 +20,10 @@ const App = () => {
   const [renderGame, setRenderGame] = useState("");
   const storage = window.localStorage;
   let navigate = useNavigate();
+  const games = {
+    TicTacToe: <TicTacToe match={match} />,
+    Tetris: <div> hola </div>,
+  };
 
   const {
     token: { colorBgContainer },
@@ -88,7 +88,7 @@ const App = () => {
       setPendingResponse(false);
       messageApi.open({
         type: "error",
-        content: `"${match.challenged.username} doesn't want to play ${match.game}`,
+        content: `${match.challenged.username} doesn't want to play ${match.game}`,
       });
     };
 
@@ -116,6 +116,7 @@ const App = () => {
     };
 
     if (match?.game) {
+      console.log("Aceptó, vamos a jugar");
       socket.on("play", renderVideogame);
     }
 

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { socket } from "../../configuration";
 
-const TicTacToe = () => {
+const TicTacToe = ({ match }) => {
+  console.log("Dentro de TicTacToe", match);
   return (
     <div>
       <h1>VAMO A JUGA </h1>
