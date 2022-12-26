@@ -2,8 +2,10 @@ import React, { useState, useEffect } from "react";
 import { Breadcrumb, Layout, Modal, theme, message } from "antd";
 import Chat from "../Chat/Chat";
 import { useNavigate } from "react-router-dom";
+//import TicTacToe from "../TicTacToe/App";
 import TicTacToe from "../TicTacToe/TicTacToe";
 import { socket } from "../../configuration";
+//import "./App.css";
 
 const App = () => {
   const { Header, Content, Footer, Sider } = Layout;
@@ -76,6 +78,10 @@ const App = () => {
       //  Challenger now has access the match
       setMatch(match);
       socket.emit("join-room", room);
+      setMatch({
+        ...match,
+        room,
+      });
       setRenderGame(match.game);
     };
 
@@ -135,6 +141,10 @@ const App = () => {
     const room = match.challenger.id + match.challenged.id;
 
     socket.emit("join-room", room);
+    setMatch({
+      ...match,
+      room,
+    });
     console.log("le mando el match", match);
     socket.emit("challenge-accepted", room, match);
     //socket.emit("challenge-accepted", { room, match });
