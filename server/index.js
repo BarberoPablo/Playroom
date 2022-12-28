@@ -22,15 +22,18 @@ app.use(morgan("dev"));
   { "username1": "socket1", "username2": "socket2", "username3": "socket3",}
 */
 const users = {};
+const matches = {};
 
 io.on("connection", (socket) => {
   console.log(`USER CONNECTED: ${socket.id}`);
 
+  //  User creation
   socket.on("new-username", (username) => {
     users[username] = socket.id;
     socket.broadcast.emit("new-online-user", users);
   });
 
+  //  Chat message
   socket.on("message", (message, username, room) => {
     const messageAndUser = { message, from: username };
     if (room === "") {
@@ -41,14 +44,12 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("join-room", (room, cb) => {
+  //  Join room
+  socket.on("join-room", (room) => {
     socket.join(room);
-    if (cb) {
-      cb(`Joined room "${room}"`);
-    }
-    io.to(room).emit("prueba", "You are all connected to the same room");
   });
 
+  //  Online users
   socket.on("online-users", () => {
     io.sockets.to(socket.id).emit("online-users", users);
   });
@@ -56,9 +57,12 @@ io.on("connection", (socket) => {
   //  Challenge user
   socket.on("challenge-user", (game, challenged, username) => {
     const challengedId = users[challenged];
-
+    //  Match creation
     if (challengedId) {
       const match = {
+        turn: "x",
+        //match.challenger.id + match.challenged.id
+        room: socket.id + challengedId,
         game,
         challenged: {
           id: challengedId,
@@ -69,7 +73,9 @@ io.on("connection", (socket) => {
           username,
         },
       };
-      io.to(challengedId).emit("challenge-user", match);
+      // Store match in matches
+      matches[match.room] = match;
+      io.to(challengedId).emit("challenge-user", { ...match, me: "o" });
     }
   });
 
@@ -77,14 +83,15 @@ io.on("connection", (socket) => {
     io.to(match.challenger.id).emit("challenge-denied", match);
   });
 
-  socket.on("challenge-accepted", (room, match) => {
-    //  Challenged user is already connected to the room
-    //  Lets say to the challenger user to connect to the room
-    io.to(match.challenger.id).emit("join-playroom", room, match);
-
+  socket.on("challenge-accepted", (match) => {
+    //  Connect challenged user to room
+    //  Connect challenger user to room
     //  Say to both users to render the game
-    io.to(match.challenger.id).emit("play", room, match);
-    io.to(socket.id).emit("play", room, match);
+    socket.join(match.room);
+
+    io.to(match.challenger.id).emit("join-playroom", match);
+
+    io.to(match.challenger.id, socket.id).emit("play", match);
   });
 
   //  TicTacToe events
@@ -97,6 +104,20 @@ io.on("connection", (socket) => {
     const username = Object.keys(users).find((user) => users[user] === socket.id);
     delete users[username];
     socket.broadcast.emit("new-online-user", users);
+  });
+
+  //  TicTacToe
+  socket.on("update-game", (clientMatch, index) => {
+    const serverMatch = matches[clientMatch.room];
+    const newTurn = serverMatch?.turn === "x" ? "o" : "x";
+    if (
+      (serverMatch.turn === "x" && socket.id === serverMatch.challenger.id) ||
+      (serverMatch.turn === "o" && socket.id === serverMatch.challenged.id)
+    ) {
+      serverMatch.turn = newTurn;
+      //  Client to update match
+      io.in(clientMatch.room).emit("update-game", serverMatch, index);
+    }
   });
 });
 

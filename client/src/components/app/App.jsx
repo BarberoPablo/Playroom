@@ -2,14 +2,11 @@ import React, { useState, useEffect } from "react";
 import { Breadcrumb, Layout, Modal, theme, message } from "antd";
 import Chat from "../Chat/Chat";
 import { useNavigate } from "react-router-dom";
-//import TicTacToe from "../TicTacToe/App";
 import TicTacToe from "../TicTacToe/TicTacToe";
 import { socket } from "../../configuration";
-//import "./App.css";
 
 const App = () => {
   const { Header, Content, Footer, Sider } = Layout;
-  //const games = ["TicTacToe", "Tetris"];
   const [collapsed, setCollapsed] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [openChallengeModal, setOpenChallengeModal] = useState(false);
@@ -66,30 +63,29 @@ const App = () => {
   useEffect(() => {
     //  Challenge user
     const incomingChallenge = (match) => {
+      //  Match with room
       setMatch(match);
-      setModalText(`The player ${match.challenger.username} has challenge you to a game of ${match.game}`);
+      setModalText(
+        `The player ${match.challenger.username} has challenge you to a game of ${match.game}`
+      );
       setOpenChallengeModal(true);
     };
 
     socket.on("challenge-user", incomingChallenge);
 
-    //  Connect to room after challenge is accepted
-    const joinPlaroom = (room, match) => {
+    const joinPlaroom = (incomingMatch) => {
+      //  Connect to room after challenge is accepted
       //  Challenger now has access the match
-      setMatch(match);
-      socket.emit("join-room", room);
-      setMatch({
-        ...match,
-        room,
-      });
-      setRenderGame(match.game);
+      const challangerMatch = { ...incomingMatch, me: "x" };
+      setMatch(challangerMatch);
+      socket.emit("join-room", incomingMatch.room);
+      setRenderGame(incomingMatch.game);
     };
 
     socket.on("join-playroom", joinPlaroom);
 
     //  Denied
     const challengeDenied = (match) => {
-      setMatch(match);
       messageApi.destroy();
       setPendingResponse(false);
       messageApi.open({
@@ -100,32 +96,25 @@ const App = () => {
 
     socket.on("challenge-denied", challengeDenied);
 
-    //  Prueba
-    const msg = (message) => {
-      console.log(message);
-    };
-
-    socket.on("prueba", msg);
-
+    //  Unmount component
     return () => {
-      socket.off("join-playroom", joinPlaroom);
-      socket.off("prueba", msg);
       socket.off("challenge-user", incomingChallenge);
+      socket.off("join-playroom", joinPlaroom);
       socket.off("challenge-denied", challengeDenied);
     };
   }, []);
 
   //  RENDER GAME
   useEffect(() => {
-    const renderVideogame = (room, match) => {
+    const renderVideogame = (match) => {
       setRenderGame(match.game);
     };
 
     if (match?.game) {
-      console.log("Aceptó, vamos a jugar");
       socket.on("play", renderVideogame);
     }
 
+    //  Unmount component
     return () => {
       socket.off("play", renderVideogame);
     };
@@ -134,20 +123,11 @@ const App = () => {
   const closeModal = () => {
     setOpenChallengeModal(false);
     socket.emit("challenge-denied", match);
-    //setMatch({});
   };
 
   const acceptChallenge = () => {
-    const room = match.challenger.id + match.challenged.id;
-
-    socket.emit("join-room", room);
-    setMatch({
-      ...match,
-      room,
-    });
-    console.log("le mando el match", match);
-    socket.emit("challenge-accepted", room, match);
-    //socket.emit("challenge-accepted", { room, match });
+    socket.emit("join-room", match.room);
+    socket.emit("challenge-accepted", match);
 
     setOpenChallengeModal(false);
     setRenderGame(match.game);
@@ -263,7 +243,7 @@ const App = () => {
             textAlign: "center",
           }}
         >
-          Ant Design ©2018 Created by Ant UED
+          Created by Pablo Barbero
         </Footer>
       </Layout>
     </Layout>

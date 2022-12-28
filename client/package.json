@@ -10,9 +10,11 @@
   },
   "dependencies": {
     "antd": "^5.0.7",
+    "framer-motion": "^8.0.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.4.5",
+    "sass": "^1.57.1",
     "socket.io-client": "^4.5.4"
   },
   "devDependencies": {
