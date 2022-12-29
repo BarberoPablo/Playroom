@@ -4,6 +4,16 @@ const cors = require("cors");
 const { Server: SocketServer } = require("socket.io");
 const http = require("http");
 const configuration = require("./config.js");
+const mongoose = require("mongoose");
+const CONNECTION_URL = `mongodb+srv://admin:aDqvIJdJh6GNfiBD@cluster0.dycq5dv.mongodb.net/test`;
+const PORT = 3001;
+mongoose
+  .set("strictQuery", true)
+  .connect(CONNECTION_URL)
+  .then(() => console.log(`Server running on port ${PORT}`))
+  .catch((error) => {
+    console.log(error.message);
+  });
 
 //  Convierto la aplicacion de express en un servidor http y lo recibe el wss
 const app = express();
