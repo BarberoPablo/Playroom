@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "antd";
-import "./Home.css";
 import { socket } from "../../configuration";
+import "./Home.css";
+import welcomeVideo from "../../assets/welcomeVideo.mp4";
 
 const Home = () => {
   const [username, setUsername] = useState("");
@@ -33,16 +34,23 @@ const Home = () => {
   };
 
   return (
-    <div className="home-conteiner">
-      <Input
-        className="username"
-        placeholder="Enter your username"
-        showCount
-        value={username}
-        maxLength={20}
-        onChange={onChange}
-        onPressEnter={handleSubmit}
-      />
+    <div className="home-main">
+      <video src={welcomeVideo} autoPlay muted>
+        Your browser does not support the video tag.
+      </video>
+
+      <div className="home-content">
+        <Input
+          className="username"
+          placeholder="Enter your username"
+          showCount
+          value={username}
+          maxLength={20}
+          autoFocus
+          onChange={onChange}
+          onPressEnter={handleSubmit}
+        />
+      </div>
     </div>
   );
 };

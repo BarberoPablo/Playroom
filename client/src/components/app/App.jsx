@@ -4,6 +4,7 @@ import Chat from "../Chat/Chat";
 import { useNavigate } from "react-router-dom";
 import TicTacToe from "../TicTacToe/TicTacToe";
 import { socket } from "../../configuration";
+import "./App.css";
 
 const App = () => {
   const { Header, Content, Footer, Sider } = Layout;
@@ -180,6 +181,7 @@ const App = () => {
           <button> Logout</button>
         </Header>
         <Content
+          className="content"
           style={{
             margin: "0 16px",
           }}
@@ -193,7 +195,7 @@ const App = () => {
             style={{
               padding: 24,
               minHeight: 360,
-              background: colorBgContainer,
+              //background: colorBgContainer,
             }}
           >
             {renderGame ? (

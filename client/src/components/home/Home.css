@@ -1,15 +1,37 @@
-.home-conteiner {
-  display: flex;
+/* .home-conteiner {
   background-image: url('https://cdnb.artstation.com/p/assets/images/images/024/538/827/original/pixel-jeff-clipa-s.gif?1582740711');
+  display: flex;
   min-height: 100vh;
   background-position: center;
   align-items: center;
   background-size: cover;
 
 }
+*/
+
+.main {
+  width: 100%;
+  height: 100vh;
+}
+
+video {
+  width: 100%;
+  height: 99vh;
+  object-fit: cover;
+}
+
+.home-content {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: blue;
+}
 
 .username {
-  align-items: center;
   width: 250px;
-
 }
