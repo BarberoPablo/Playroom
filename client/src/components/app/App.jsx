@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Breadcrumb, Layout, Modal, theme, message } from "antd";
+import { Breadcrumb, Layout, Modal, theme, message, Button } from "antd";
 import Chat from "../Chat/Chat";
 import { useNavigate } from "react-router-dom";
 import TicTacToe from "../TicTacToe/TicTacToe";
@@ -72,6 +72,13 @@ const App = () => {
       setOpenChallengeModal(true);
     };
 
+    //  Cancel challenge
+    const cancelChallenge = () => {
+      setOpenChallengeModal(false);
+    };
+
+    socket.on("close-modal", cancelChallenge);
+
     socket.on("challenge-user", incomingChallenge);
 
     const joinPlaroom = (incomingMatch) => {
@@ -100,6 +107,7 @@ const App = () => {
     //  Unmount component
     return () => {
       socket.off("challenge-user", incomingChallenge);
+      socket.off("close-modal", cancelChallenge);
       socket.off("join-playroom", joinPlaroom);
       socket.off("challenge-denied", challengeDenied);
     };
@@ -140,6 +148,13 @@ const App = () => {
     setGameSelected(e.target.innerHTML);
   };
 
+  const cancelChallenge = (e) => {
+    e.preventDefault();
+    messageApi.destroy();
+    setPendingResponse(false);
+    socket.emit("challenge-canceled");
+  };
+
   const handleChallengeUser = (e) => {
     if (!pendingResponse) {
       e.preventDefault();
@@ -147,7 +162,14 @@ const App = () => {
       setPendingResponse(true);
       messageApi.open({
         type: "loading",
-        content: `Waiting for ${e.target.value} to respond...`,
+        content: (
+          <div>
+            Waiting for {e.target.value} to respond...
+            <Button danger type="link" onClick={cancelChallenge}>
+              Cancel
+            </Button>
+          </div>
+        ),
         duration: 0,
       });
     }
