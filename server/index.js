@@ -90,6 +90,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("challenge-denied", (match) => {
+    console.log("Se ejecuto challenge denied");
     io.to(match.challenger.id).emit("challenge-denied", match);
   });
 
@@ -104,10 +105,18 @@ io.on("connection", (socket) => {
     io.to(match.challenger.id, socket.id).emit("play", match);
   });
 
-  //  TicTacToe events
-  socket.on("update-tictactoe", (message) => {
-    socket.emit;
+  socket.on("challenge-canceled", () => {
+    let match = false;
+    Object.keys(matches).forEach((matchId) => {
+      match = matchId.includes(socket.id) ? matchId : false;
+    });
+
+    const challenged = matches[match].challenged.id;
+    io.to(challenged).emit("close-modal");
   });
+
+  //  TicTacToe events
+  socket.on("update-tictactoe", (message) => {});
 
   //  Socket disconnect
   socket.on("disconnect", function () {
