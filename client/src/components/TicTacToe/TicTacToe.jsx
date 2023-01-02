@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
+import { message } from "antd";
 import Square from "./components/Square";
 import Button from "./components/Button";
 import "../TicTacToe/index.css";
@@ -7,28 +8,62 @@ import { socket } from "../../configuration";
 
 function TicTacToe({ match }) {
   const [squares, setSquares] = useState(Array(9).fill(""));
-  const [turn, setTurn] = useState("x");
   const [winner, setWinner] = useState(null);
-
   const [clientMatch, setClientMatch] = useState(match);
+  const [readyPlayers, setReadyPlayers] = useState(0);
+  const [playAgain, setPlayAgain] = useState(false);
+  const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
     //  Update game with server info
     const updateGame = (serverMatch, index) => {
-      console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-      console.log("client:", clientMatch);
-      console.log("server:", serverMatch);
-      console.log("union", { ...clientMatch, turn: serverMatch.turn });
-
       const updatedMatch = { ...clientMatch, turn: serverMatch.turn };
       setClientMatch(updatedMatch);
       updateSquares(index);
     };
-
     socket.on("update-client-game", updateGame);
 
+    //  Play again
+    const playerReady = (matchReset) => {
+      setReadyPlayers(1);
+    };
+    socket.on("player-ready", playerReady);
+
+    //  Reset game
+    const resetMatch = (matchReset) => {
+      setPlayAgain(false);
+      setSquares(Array(9).fill(""));
+      setWinner(null);
+      const newMatch = { ...matchReset, me: clientMatch.me };
+      setClientMatch(newMatch);
+      messageApi.destroy();
+      setReadyPlayers(0);
+    };
+    socket.on("client-reset-game", resetMatch);
+
+    //  Other player wants to play again
+    const playAgainAlert = () => {
+      messageApi.open({
+        type: "loading",
+        content: (
+          <div>
+            The other player is ready to play again
+            {/* <Button danger type="link" onClick={cancelChallenge}>
+              Cancel
+            </Button> */}
+          </div>
+        ),
+        duration: 0,
+      });
+    };
+    socket.on("wants-to-play-again", playAgainAlert);
+
+    //  Component unmount
     return () => {
       socket.off("update-client-game", updateGame);
+      socket.off("player-ready", playerReady);
+      socket.off("client-reset-game", resetMatch);
+      socket.off("wants-to-play-again", playAgainAlert);
     };
   }, [clientMatch]);
 
@@ -62,7 +97,6 @@ function TicTacToe({ match }) {
 
   const updateSquaresInServer = (index) => {
     if (clientMatch.turn === clientMatch.me) {
-      console.log(clientMatch.turn, clientMatch.me);
       socket.emit("update-server-game", clientMatch, index);
     }
   };
@@ -85,13 +119,29 @@ function TicTacToe({ match }) {
   };
 
   const resetGame = () => {
-    setSquares(Array(9).fill(""));
-    setWinner(null);
-    const matchReset = { ...match, turn: "x" };
-    setClientMatch(matchReset);
-    console.log("terminando juego...");
-    socket.emit("server-end-game", matchReset);
-    console.log("El match ahora es:", matchReset);
+    if (!playAgain) {
+      setPlayAgain(true);
+      const matchReset = { ...match, turn: "x" };
+
+      if (readyPlayers === 1) {
+        socket.emit("reset-game", matchReset);
+      } else {
+        socket.emit("play-again", matchReset);
+        //RENDER WAITING FOR OTHER PLAYER ALERT
+        messageApi.open({
+          type: "loading",
+          content: (
+            <div>
+              Waiting for to play again
+              {/* <Button danger type="link" onClick={cancelChallenge}>
+                Cancel
+              </Button> */}
+            </div>
+          ),
+          duration: 0,
+        });
+      }
+    }
   };
 
   return (
@@ -177,6 +227,7 @@ function TicTacToe({ match }) {
           </motion.div>
         )}
       </AnimatePresence>
+      {contextHolder}
     </div>
   );
 }

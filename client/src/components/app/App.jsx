@@ -20,6 +20,7 @@ const App = () => {
   const [messageApi, contextHolder] = message.useMessage();
   const [renderGame, setRenderGame] = useState("");
   const storage = window.localStorage;
+
   let navigate = useNavigate();
   const games = {
     TicTacToe: <TicTacToe match={match} />,
