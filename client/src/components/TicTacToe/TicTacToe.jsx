@@ -15,15 +15,20 @@ function TicTacToe({ match }) {
   useEffect(() => {
     //  Update game with server info
     const updateGame = (serverMatch, index) => {
-      const updatedMatch = { ...clientMatch, ...serverMatch };
+      console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+      console.log("client:", clientMatch);
+      console.log("server:", serverMatch);
+      console.log("union", { ...clientMatch, turn: serverMatch.turn });
+
+      const updatedMatch = { ...clientMatch, turn: serverMatch.turn };
       setClientMatch(updatedMatch);
       updateSquares(index);
     };
 
-    socket.on("update-game", updateGame);
+    socket.on("update-client-game", updateGame);
 
     return () => {
-      socket.off("update-game", updateGame);
+      socket.off("update-client-game", updateGame);
     };
   }, [clientMatch]);
 
@@ -57,7 +62,8 @@ function TicTacToe({ match }) {
 
   const updateSquaresInServer = (index) => {
     if (clientMatch.turn === clientMatch.me) {
-      socket.emit("update-game", clientMatch, index);
+      console.log(clientMatch.turn, clientMatch.me);
+      socket.emit("update-server-game", clientMatch, index);
     }
   };
 
@@ -81,6 +87,11 @@ function TicTacToe({ match }) {
   const resetGame = () => {
     setSquares(Array(9).fill(""));
     setWinner(null);
+    const matchReset = { ...match, turn: "x" };
+    setClientMatch(matchReset);
+    console.log("terminando juego...");
+    socket.emit("server-end-game", matchReset);
+    console.log("El match ahora es:", matchReset);
   };
 
   return (
@@ -129,7 +140,7 @@ function TicTacToe({ match }) {
                   },
                 }}
               >
-                {winner === "x | o" ? "No Winner :/" : "Win !! :)"}
+                {winner === "x | o" ? "No Winner :/" : "The winner is:"}
               </motion.h2>
               <motion.div
                 initial={{ scale: 0 }}

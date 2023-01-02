@@ -116,27 +116,48 @@ io.on("connection", (socket) => {
   });
 
   //  TicTacToe events
-  socket.on("update-tictactoe", (message) => {});
-
-  //  Socket disconnect
-  socket.on("disconnect", function () {
-    const username = Object.keys(users).find((user) => users[user] === socket.id);
-    delete users[username];
-    socket.broadcast.emit("new-online-user", users);
+  socket.on("server-end-game", (matchReset) => {
+    console.log("Se termino el juego");
+    console.log("Todos los matches", matches);
+    const room = matchReset.room;
+    console.log("borrar match con room:", room);
+    matches[room] = null;
+    console.log("matches restantes", matches);
+    const theOtherPlayer =
+      socket.id === matchReset.challenger.id ? matchReset.challenger.id : matchReset.challenged.id;
+    io.to(matchReset[theOtherPlayer]).emit("client-end-match", matchReset); //HACER LA LOGICA EN EL CLIENTE
   });
 
   //  TicTacToe
-  socket.on("update-game", (clientMatch, index) => {
-    const serverMatch = matches[clientMatch.room];
+  socket.on("update-server-game", (clientMatch, index) => {
+    let serverMatch = matches[clientMatch.room];
+    if (serverMatch === null) {
+      serverMatch = clientMatch;
+      matches[clientMatch.room] = clientMatch;
+      //serverMatch = ...;
+    }
     const newTurn = serverMatch?.turn === "x" ? "o" : "x";
+    console.log("matches", matches);
+    console.log("server match", serverMatch);
+    console.log("client match", clientMatch);
+    console.log("room", clientMatch.room);
+    console.log("socket id", socket.id);
     if (
       (serverMatch.turn === "x" && socket.id === serverMatch.challenger.id) ||
       (serverMatch.turn === "o" && socket.id === serverMatch.challenged.id)
     ) {
       serverMatch.turn = newTurn;
       //  Client to update match
-      io.in(clientMatch.room).emit("update-game", serverMatch, index);
+      io.in(clientMatch.room).emit("update-client-game", serverMatch, index);
+      console.log("Se emitió:");
     }
+  });
+
+  //  Socket disconnect
+  socket.on("disconnect", function () {
+    const username = Object.keys(users).find((user) => users[user] === socket.id);
+    delete users[username];
+    socket.broadcast.emit("new-online-user", users);
   });
 });
 
