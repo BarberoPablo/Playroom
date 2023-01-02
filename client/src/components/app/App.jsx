@@ -4,6 +4,7 @@ import Chat from "../Chat/Chat";
 import { useNavigate } from "react-router-dom";
 import TicTacToe from "../TicTacToe/TicTacToe";
 import { socket } from "../../configuration";
+import iceCreams from "../../assets/helados.png";
 import "./App.css";
 
 const App = () => {
@@ -177,6 +178,7 @@ const App = () => {
 
   return (
     <Layout
+      className="wata"
       style={{
         minHeight: "100vh",
       }}
@@ -192,9 +194,11 @@ const App = () => {
 
       <Layout className="site-layout">
         <Header
+          className="site-header"
           style={{
-            padding: 0,
-            background: colorBgContainer,
+            background: (0, 0, 0, 0.5),
+            borderBottom: "black dotted",
+            //width: "100% ",
           }}
         >
           <button onClick={(e) => handleUsernameChange(e)}> Change username</button>
@@ -203,7 +207,7 @@ const App = () => {
           <button> Logout</button>
         </Header>
         <Content
-          className="content"
+          className="site-content"
           style={{
             margin: "0 16px",
           }}
@@ -263,8 +267,10 @@ const App = () => {
           </div>
         </Content>
         <Footer
+          className="site-footer"
           style={{
             textAlign: "center",
+            background: (0, 0, 0, 0.5),
           }}
         >
           Created by Pablo Barbero
