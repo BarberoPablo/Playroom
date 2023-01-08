@@ -41,29 +41,12 @@ function TicTacToe({ match }) {
     };
     socket.on("client-reset-game", resetMatch);
 
-    //  Other player wants to play again
-    const playAgainAlert = () => {
-      messageApi.open({
-        type: "loading",
-        content: (
-          <div>
-            The other player is ready to play again
-            {/* <Button danger type="link" onClick={cancelChallenge}>
-              Cancel
-            </Button> */}
-          </div>
-        ),
-        duration: 0,
-      });
-    };
-    socket.on("wants-to-play-again", playAgainAlert);
-
     //  Component unmount
     return () => {
       socket.off("update-client-game", updateGame);
       socket.off("player-ready", playerReady);
       socket.off("client-reset-game", resetMatch);
-      socket.off("wants-to-play-again", playAgainAlert);
+      /* socket.off("wants-to-play-again", playAgainAlert); */
     };
   }, [clientMatch]);
 
@@ -123,6 +106,9 @@ function TicTacToe({ match }) {
       setPlayAgain(true);
       const matchReset = { ...match, turn: "x" };
 
+      const notMe =
+        matchReset.me === "x" ? matchReset.challenged.username : matchReset.challenger.username;
+      console.log("New match", matchReset);
       if (readyPlayers === 1) {
         socket.emit("reset-game", matchReset);
       } else {
@@ -130,14 +116,7 @@ function TicTacToe({ match }) {
         //RENDER WAITING FOR OTHER PLAYER ALERT
         messageApi.open({
           type: "loading",
-          content: (
-            <div>
-              Waiting for to play again
-              {/* <Button danger type="link" onClick={cancelChallenge}>
-                Cancel
-              </Button> */}
-            </div>
-          ),
+          content: `Waiting for ${notMe} to play again`,
           duration: 0,
         });
       }

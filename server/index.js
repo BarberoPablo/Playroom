@@ -155,8 +155,20 @@ io.on("connection", (socket) => {
 
   //  Socket disconnect
   socket.on("disconnect", function () {
+    //  Delete user from connected users
     const username = Object.keys(users).find((user) => users[user] === socket.id);
     delete users[username];
+
+    //  Stop user ongoing match
+    const ongoingMatch = Object.keys(matches).find((match) => match.includes(socket.id));
+    console.log("ongoing match destroyed", ongoingMatch);
+    if (ongoingMatch) {
+      const onlinePlayerId = ongoingMatch.replace(socket.id, "");
+      console.log("onlinePlayer", onlinePlayerId);
+      //  send message to second user to disconnect from socket and destroy match
+      //delete matches[ongoingMatch];
+      io.to(onlinePlayerId).emit("opponent-disconnected");
+    }
     socket.broadcast.emit("new-online-user", users);
   });
 });
