@@ -96,16 +96,16 @@ function TicTacToe({ match }) {
   };
 
   const updateSquaresInServer = (index) => {
+    if (squares[index] || winner) {
+      return;
+    }
+    //console.log("click");
     if (clientMatch.turn === clientMatch.me) {
       socket.emit("update-server-game", clientMatch, index);
     }
   };
 
   const updateSquares = (ind) => {
-    if (squares[ind] || winner) {
-      return;
-    }
-
     const s = squares;
 
     s[ind] = clientMatch.turn;
