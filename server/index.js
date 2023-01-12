@@ -90,7 +90,6 @@ io.on("connection", (socket) => {
   });
 
   socket.on("challenge-denied", (match) => {
-    console.log("Se ejecuto challenge denied");
     io.to(match.challenger.id).emit("challenge-denied", match);
   });
 
@@ -116,16 +115,22 @@ io.on("connection", (socket) => {
   });
 
   //  TicTacToe events
-  socket.on("server-end-game", (matchReset) => {
-    console.log("Se termino el juego");
-    console.log("Todos los matches", matches);
+  socket.on("play-again", (matchReset) => {
+    //  Destroy previous match
     const room = matchReset.room;
-    console.log("borrar match con room:", room);
     matches[room] = null;
-    console.log("matches restantes", matches);
     const theOtherPlayer =
-      socket.id === matchReset.challenger.id ? matchReset.challenger.id : matchReset.challenged.id;
-    io.to(matchReset[theOtherPlayer]).emit("client-end-match", matchReset); //HACER LA LOGICA EN EL CLIENTE
+      socket.id === matchReset.challenger.id ? matchReset.challenged.id : matchReset.challenger.id;
+
+    //  Alert the other player that is ready
+    io.to(theOtherPlayer).emit("wants-to-play-again");
+    //  One more player is ready to play again
+    io.to(room).emit("player-ready", matchReset); //HACER LA LOGICA EN EL CLIENTE
+  });
+
+  //  TicTacToe reset game
+  socket.on("reset-game", (matchReset) => {
+    io.to(matchReset.room).emit("client-reset-game", matchReset);
   });
 
   //  TicTacToe
@@ -137,11 +142,7 @@ io.on("connection", (socket) => {
       //serverMatch = ...;
     }
     const newTurn = serverMatch?.turn === "x" ? "o" : "x";
-    console.log("matches", matches);
-    console.log("server match", serverMatch);
-    console.log("client match", clientMatch);
-    console.log("room", clientMatch.room);
-    console.log("socket id", socket.id);
+
     if (
       (serverMatch.turn === "x" && socket.id === serverMatch.challenger.id) ||
       (serverMatch.turn === "o" && socket.id === serverMatch.challenged.id)
@@ -149,14 +150,25 @@ io.on("connection", (socket) => {
       serverMatch.turn = newTurn;
       //  Client to update match
       io.in(clientMatch.room).emit("update-client-game", serverMatch, index);
-      console.log("Se emitió:");
     }
   });
 
   //  Socket disconnect
   socket.on("disconnect", function () {
+    //  Delete user from connected users
     const username = Object.keys(users).find((user) => users[user] === socket.id);
     delete users[username];
+
+    //  Stop user ongoing match
+    const ongoingMatch = Object.keys(matches).find((match) => match.includes(socket.id));
+    if (ongoingMatch) {
+      console.log("ongoing match destroyed", ongoingMatch);
+      const onlinePlayerId = ongoingMatch.replace(socket.id, "");
+      console.log("onlinePlayer", onlinePlayerId);
+      //  send message to second user to disconnect from socket and destroy match
+      //delete matches[ongoingMatch];
+      io.to(onlinePlayerId).emit("opponent-disconnected");
+    }
     socket.broadcast.emit("new-online-user", users);
   });
 });

@@ -4,7 +4,6 @@ import Chat from "../Chat/Chat";
 import { useNavigate } from "react-router-dom";
 import TicTacToe from "../TicTacToe/TicTacToe";
 import { socket } from "../../configuration";
-import iceCreams from "../../assets/helados.png";
 import "./App.css";
 
 const App = () => {
@@ -21,6 +20,7 @@ const App = () => {
   const [renderGame, setRenderGame] = useState("");
   const storage = window.localStorage;
   let navigate = useNavigate();
+
   const games = {
     TicTacToe: <TicTacToe match={match} />,
     Tetris: <div> hola </div>,
@@ -36,12 +36,23 @@ const App = () => {
     navigate("/");
   };
 
+  useEffect(() => {
+    const username = storage.getItem("username");
+
+    if (!username) {
+      navigate("/");
+    } else {
+      socket.emit("new-username", username);
+    }
+  }, []);
+
   //  ONLINE USERS
   useEffect(() => {
     //  Online users
     socket.emit("online-users");
 
     const getOnlineUsers = (users) => {
+      //console.log("online users", users);
       const usersOnline = Object.keys(users).filter((user) => user !== storage.getItem("username"));
       setOnlineUsers(usersOnline);
     };
@@ -105,12 +116,38 @@ const App = () => {
 
     socket.on("challenge-denied", challengeDenied);
 
+    //  User disconnected, destroy match
+    const destroyMatchAndGoBackHome = () => {
+      //  If there are any previous alerts, destroy them and show a new one
+      messageApi.destroy();
+      message.destroy();
+      setMatch({});
+      //  Solution to showing two alaerts (APP and Game alert): Redux or :
+      message.loading("Opponent has disconnected from the game. Reloading menu...", 8);
+
+      setTimeout(function () {
+        location.reload();
+      }, 8000);
+    };
+
+    socket.on("opponent-disconnected", destroyMatchAndGoBackHome);
+
+    //  Other player wants to play again
+    const playAgainAlert = () => {
+      messageApi.destroy();
+      message.loading("The other player is ready to play again", 0);
+    };
+
+    socket.on("wants-to-play-again", playAgainAlert);
+
     //  Unmount component
     return () => {
       socket.off("challenge-user", incomingChallenge);
       socket.off("close-modal", cancelChallenge);
       socket.off("join-playroom", joinPlaroom);
       socket.off("challenge-denied", challengeDenied);
+      socket.off("opponent-disconnected", destroyMatchAndGoBackHome);
+      socket.off("wants-to-play-again", playAgainAlert);
     };
   }, []);
 
@@ -159,13 +196,14 @@ const App = () => {
   const handleChallengeUser = (e) => {
     if (!pendingResponse) {
       e.preventDefault();
-      socket.emit("challenge-user", gameSelected, e.target.value, storage.getItem("username"));
+      const challenged = e.target.value;
+      socket.emit("challenge-user", gameSelected, challenged, storage.getItem("username"));
       setPendingResponse(true);
       messageApi.open({
         type: "loading",
         content: (
           <div>
-            Waiting for {e.target.value} to respond...
+            Waiting for {challenged} to respond...
             <Button danger type="link" onClick={cancelChallenge}>
               Cancel
             </Button>
@@ -235,7 +273,7 @@ const App = () => {
                       {game}
                     </button>
                   ))}
-                <h1>Challenge a user!</h1>
+                {/* <h2> Users online (w/o you): {onlineUsers.length}</h2> */}
                 {
                   //challengeUserButton
                   onlineUsers.length > 0 &&
