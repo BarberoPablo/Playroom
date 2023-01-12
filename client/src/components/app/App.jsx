@@ -4,7 +4,6 @@ import Chat from "../Chat/Chat";
 import { useNavigate } from "react-router-dom";
 import TicTacToe from "../TicTacToe/TicTacToe";
 import { socket } from "../../configuration";
-import iceCreams from "../../assets/helados.png";
 import "./App.css";
 
 const App = () => {
@@ -20,8 +19,8 @@ const App = () => {
   const [messageApi, contextHolder] = message.useMessage();
   const [renderGame, setRenderGame] = useState("");
   const storage = window.localStorage;
-
   let navigate = useNavigate();
+
   const games = {
     TicTacToe: <TicTacToe match={match} />,
     Tetris: <div> hola </div>,
@@ -37,12 +36,23 @@ const App = () => {
     navigate("/");
   };
 
+  useEffect(() => {
+    const username = storage.getItem("username");
+
+    if (!username) {
+      navigate("/");
+    } else {
+      socket.emit("new-username", username);
+    }
+  }, []);
+
   //  ONLINE USERS
   useEffect(() => {
     //  Online users
     socket.emit("online-users");
 
     const getOnlineUsers = (users) => {
+      //console.log("online users", users);
       const usersOnline = Object.keys(users).filter((user) => user !== storage.getItem("username"));
       setOnlineUsers(usersOnline);
     };
@@ -263,7 +273,7 @@ const App = () => {
                       {game}
                     </button>
                   ))}
-                <h1>Challenge a user!</h1>
+                {/* <h2> Users online (w/o you): {onlineUsers.length}</h2> */}
                 {
                   //challengeUserButton
                   onlineUsers.length > 0 &&

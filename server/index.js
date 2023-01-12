@@ -161,8 +161,8 @@ io.on("connection", (socket) => {
 
     //  Stop user ongoing match
     const ongoingMatch = Object.keys(matches).find((match) => match.includes(socket.id));
-    console.log("ongoing match destroyed", ongoingMatch);
     if (ongoingMatch) {
+      console.log("ongoing match destroyed", ongoingMatch);
       const onlinePlayerId = ongoingMatch.replace(socket.id, "");
       console.log("onlinePlayer", onlinePlayerId);
       //  send message to second user to disconnect from socket and destroy match
