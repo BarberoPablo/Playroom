@@ -52,16 +52,28 @@ const App = () => {
     socket.emit("online-users");
 
     const getOnlineUsers = (users) => {
-      //console.log("online users", users);
-      const usersOnline = Object.keys(users).filter((user) => user !== storage.getItem("username"));
+      const myUsername = storage.getItem("username");
+      const usersOnline = [];
+      for (const user in users) {
+        if (users[user].username !== myUsername) {
+          usersOnline.push(users[user]);
+        }
+      }
       setOnlineUsers(usersOnline);
     };
 
     socket.on("online-users", getOnlineUsers);
 
     //  New online user
-    const allUsers = (message) => {
-      setOnlineUsers(message);
+    const allUsers = (users) => {
+      //  If was just a refresh or it is an actually a new user
+      console.log("Hola");
+      // si los users son iguales a los onlineUsers entonces que no actualice nada
+      if (onlineUsers.length !== users.lengt) {
+        setOnlineUsers(users);
+      } else {
+        console.log("Someone just reconnected");
+      }
     };
     socket.on("new-online-user", allUsers);
 
@@ -140,6 +152,12 @@ const App = () => {
 
     socket.on("wants-to-play-again", playAgainAlert);
 
+    //  Destroy alerts before new game
+    const destroyAlerts = () => {
+      message.destroy();
+    };
+    socket.on("client-reset-game", destroyAlerts);
+
     //  Unmount component
     return () => {
       socket.off("challenge-user", incomingChallenge);
@@ -148,6 +166,7 @@ const App = () => {
       socket.off("challenge-denied", challengeDenied);
       socket.off("opponent-disconnected", destroyMatchAndGoBackHome);
       socket.off("wants-to-play-again", playAgainAlert);
+      socket.off("client-reset-game", destroyAlerts);
     };
   }, []);
 
@@ -159,6 +178,7 @@ const App = () => {
 
     if (match?.game) {
       socket.on("play", renderVideogame);
+      messageApi.destroy();
     }
 
     //  Unmount component
@@ -193,17 +213,16 @@ const App = () => {
     socket.emit("challenge-canceled");
   };
 
-  const handleChallengeUser = (e) => {
+  const handleChallengeUser = (e, user) => {
+    e.preventDefault();
     if (!pendingResponse) {
-      e.preventDefault();
-      const challenged = e.target.value;
-      socket.emit("challenge-user", gameSelected, challenged, storage.getItem("username"));
+      socket.emit("challenge-user", gameSelected, user, storage.getItem("username"));
       setPendingResponse(true);
       messageApi.open({
         type: "loading",
         content: (
           <div>
-            Waiting for {challenged} to respond...
+            Waiting for {user.username} to respond...
             <Button danger type="link" onClick={cancelChallenge}>
               Cancel
             </Button>
@@ -273,7 +292,7 @@ const App = () => {
                       {game}
                     </button>
                   ))}
-                {/* <h2> Users online (w/o you): {onlineUsers.length}</h2> */}
+                <h1>Challenge a user!</h1>
                 {
                   //challengeUserButton
                   onlineUsers.length > 0 &&
@@ -281,11 +300,11 @@ const App = () => {
                       return (
                         <button
                           disabled={challengeUserButton}
-                          key={user}
-                          value={user}
-                          onClick={(e) => handleChallengeUser(e)}
+                          key={user.id}
+                          value={user.username}
+                          onClick={(e) => handleChallengeUser(e, user)}
                         >
-                          {user}
+                          {user.username}
                         </button>
                       );
                     })
