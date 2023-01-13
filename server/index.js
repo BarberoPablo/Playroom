@@ -28,8 +28,14 @@ const io = new SocketServer(server, {
 app.use(cors());
 app.use(morgan("dev"));
 
-/* users:
-  { "username1": "socket1", "username2": "socket2", "username3": "socket3",}
+/* 
+users:{
+  socketid:{
+    id: "9woiuegn9342",
+    username: "Player 1"
+  },
+  ...
+}
 */
 const users = {};
 const matches = {};
@@ -39,7 +45,9 @@ io.on("connection", (socket) => {
 
   //  User creation
   socket.on("new-username", (username) => {
-    users[username] = socket.id;
+    /* users[username] = socket.id; */
+    const id = socket.id;
+    users[id] = { username, id };
     socket.broadcast.emit("new-online-user", users);
   });
 
@@ -66,27 +74,24 @@ io.on("connection", (socket) => {
 
   //  Challenge user
   socket.on("challenge-user", (game, challenged, username) => {
-    const challengedId = users[challenged];
     //  Match creation
-    if (challengedId) {
-      const match = {
-        turn: "x",
-        //match.challenger.id + match.challenged.id
-        room: socket.id + challengedId,
-        game,
-        challenged: {
-          id: challengedId,
-          username: challenged,
-        },
-        challenger: {
-          id: socket.id,
-          username,
-        },
-      };
-      // Store match in matches
-      matches[match.room] = match;
-      io.to(challengedId).emit("challenge-user", { ...match, me: "o" });
-    }
+    const match = {
+      turn: "x",
+      //match.challenger.id + match.challenged.id
+      room: socket.id + challenged.id,
+      game,
+      challenged: {
+        id: challenged.id,
+        username: challenged.username,
+      },
+      challenger: {
+        id: socket.id,
+        username,
+      },
+    };
+    // Store match in matches
+    matches[match.room] = match;
+    io.to(challenged.id).emit("challenge-user", { ...match, me: "o" });
   });
 
   socket.on("challenge-denied", (match) => {
@@ -156,8 +161,8 @@ io.on("connection", (socket) => {
   //  Socket disconnect
   socket.on("disconnect", function () {
     //  Delete user from connected users
-    const username = Object.keys(users).find((user) => users[user] === socket.id);
-    delete users[username];
+
+    delete users[socket.id];
 
     //  Stop user ongoing match
     const ongoingMatch = Object.keys(matches).find((match) => match.includes(socket.id));
