@@ -89,6 +89,8 @@ const App = () => {
       setOpenChallengeModal(true);
     };
 
+    socket.on("challenge-user", incomingChallenge);
+
     //  Cancel challenge
     const cancelChallenge = () => {
       setOpenChallengeModal(false);
@@ -96,16 +98,14 @@ const App = () => {
 
     socket.on("close-modal", cancelChallenge);
 
-    socket.on("challenge-user", incomingChallenge);
-
     const joinPlaroom = (incomingMatch) => {
-      //  Connect to room after challenge is accepted
-      //  Challenger now has access the match
+      //  Challenger now has access the match and connects to room
       const challangerMatch = { ...incomingMatch, me: "x" };
       setMatch(challangerMatch);
+
       socket.emit("join-room", incomingMatch.room);
+
       setRenderGame(incomingMatch.game);
-      //TELL THE CHAT
     };
 
     socket.on("join-playroom", joinPlaroom);
@@ -169,12 +169,12 @@ const App = () => {
   };
 
   const acceptChallenge = () => {
+    //  Connect to room and tell challenger to connect to room
     socket.emit("join-room", match.room);
     socket.emit("challenge-accepted", match);
 
     setOpenChallengeModal(false);
     setRenderGame(match.game);
-    //  TELL THE CHAT
   };
 
   const handlePlayGame = (e) => {
