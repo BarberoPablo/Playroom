@@ -66,14 +66,7 @@ const App = () => {
 
     //  New online user
     const allUsers = (users) => {
-      //  If was just a refresh or it is an actually a new user
-      console.log("Hola");
-      // si los users son iguales a los onlineUsers entonces que no actualice nada
-      if (onlineUsers.length !== users.lengt) {
-        setOnlineUsers(users);
-      } else {
-        console.log("Someone just reconnected");
-      }
+      setOnlineUsers(users);
     };
     socket.on("new-online-user", allUsers);
 
@@ -112,6 +105,7 @@ const App = () => {
       setMatch(challangerMatch);
       socket.emit("join-room", incomingMatch.room);
       setRenderGame(incomingMatch.game);
+      //TELL THE CHAT
     };
 
     socket.on("join-playroom", joinPlaroom);
@@ -134,12 +128,11 @@ const App = () => {
       messageApi.destroy();
       message.destroy();
       setMatch({});
-      //  Solution to showing two alaerts (APP and Game alert): Redux or :
-      message.loading("Opponent has disconnected from the game. Reloading menu...", 8);
 
+      message.loading("Opponent has disconnected from the game. Reloading menu...", 6);
       setTimeout(function () {
         location.reload();
-      }, 8000);
+      }, 5800);
     };
 
     socket.on("opponent-disconnected", destroyMatchAndGoBackHome);
@@ -170,23 +163,6 @@ const App = () => {
     };
   }, []);
 
-  //  RENDER GAME
-  useEffect(() => {
-    const renderVideogame = (match) => {
-      setRenderGame(match.game);
-    };
-
-    if (match?.game) {
-      socket.on("play", renderVideogame);
-      messageApi.destroy();
-    }
-
-    //  Unmount component
-    return () => {
-      socket.off("play", renderVideogame);
-    };
-  }, [renderGame]);
-
   const closeModal = () => {
     setOpenChallengeModal(false);
     socket.emit("challenge-denied", match);
@@ -198,6 +174,7 @@ const App = () => {
 
     setOpenChallengeModal(false);
     setRenderGame(match.game);
+    //  TELL THE CHAT
   };
 
   const handlePlayGame = (e) => {
@@ -258,7 +235,9 @@ const App = () => {
             //width: "100% ",
           }}
         >
-          <button onClick={(e) => handleUsernameChange(e)}> Change username</button>
+          <button disabled={renderGame} onClick={(e) => handleUsernameChange(e)}>
+            Change username
+          </button>
           <button> Profile</button>
           <button> Achievements</button>
           <button> Logout</button>

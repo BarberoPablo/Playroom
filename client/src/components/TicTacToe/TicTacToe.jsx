@@ -114,100 +114,103 @@ function TicTacToe({ match }) {
       } else {
         socket.emit("play-again", matchReset);
         //RENDER WAITING FOR OTHER PLAYER ALERT
-        messageApi.open({
-          type: "loading",
-          content: `Waiting for ${notMe} to play again`,
-          duration: 0,
-        });
+        message.loading(`Waiting for ${notMe} to play again`, 0);
       }
     }
   };
 
+  const backHome = () => {
+    location.reload();
+  };
+
   return (
-    <div className="tic-tac-toe">
-      <h1> TIC-TAC-TOE </h1>
-      <h1> YOU ARE {clientMatch.me.toUpperCase()} </h1>
-      <div className="game">
-        {Array.from("012345678").map((ind) => (
-          <Square
-            match={match}
-            key={ind}
-            ind={ind}
-            updateSquaresInServer={updateSquaresInServer}
-            clsName={squares[ind]}
-          />
-        ))}
-      </div>
-      <div className={`turn ${clientMatch?.turn === "x" ? "left" : "right"}`}>
-        <Square clsName="x" />
-        <Square clsName="o" />
-      </div>
-      <AnimatePresence>
-        {winner && (
-          <motion.div
-            key={"parent-box"}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="winner"
-          >
+    <>
+      <div className="tic-tac-toe">
+        <h1> TIC-TAC-TOE </h1>
+        <h1> YOU ARE {clientMatch.me.toUpperCase()} </h1>
+        <div className="game">
+          {Array.from("012345678").map((ind) => (
+            <Square
+              match={match}
+              key={ind}
+              ind={ind}
+              updateSquaresInServer={updateSquaresInServer}
+              clsName={squares[ind]}
+            />
+          ))}
+        </div>
+        <div className={`turn ${clientMatch?.turn === "x" ? "left" : "right"}`}>
+          <Square clsName="x" />
+          <Square clsName="o" />
+        </div>
+        <AnimatePresence>
+          {winner && (
             <motion.div
-              key={"child-box"}
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0, opacity: 0 }}
-              className="text"
+              key={"parent-box"}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="winner"
             >
-              <motion.h2
-                initial={{ scale: 0, y: 100 }}
-                animate={{
-                  scale: 1,
-                  y: 0,
-                  transition: {
-                    y: { delay: 0.7 },
-                    duration: 0.7,
-                  },
-                }}
-              >
-                {winner === "x | o" ? "No Winner :/" : "The winner is:"}
-              </motion.h2>
               <motion.div
+                key={"child-box"}
                 initial={{ scale: 0 }}
-                animate={{
-                  scale: 1,
-                  transition: {
-                    delay: 1.3,
-                    duration: 0.2,
-                  },
-                }}
-                className="win"
+                animate={{ scale: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                className="text"
               >
-                {winner === "x | o" ? (
-                  <>
-                    <Square clsName="x" />
-                    <Square clsName="o" />
-                  </>
-                ) : (
-                  <>
-                    <Square clsName={winner} />
-                  </>
-                )}
-              </motion.div>
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{
-                  scale: 1,
-                  transition: { delay: 1.5, duration: 0.3 },
-                }}
-              >
-                <Button resetGame={resetGame} />
+                <motion.h2
+                  initial={{ scale: 0, y: 100 }}
+                  animate={{
+                    scale: 1,
+                    y: 0,
+                    transition: {
+                      y: { delay: 0.7 },
+                      duration: 0.7,
+                    },
+                  }}
+                >
+                  {winner === "x | o" ? "No Winner :/" : "The winner is:"}
+                </motion.h2>
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{
+                    scale: 1,
+                    transition: {
+                      delay: 1.3,
+                      duration: 0.2,
+                    },
+                  }}
+                  className="win"
+                >
+                  {winner === "x | o" ? (
+                    <>
+                      <Square clsName="x" />
+                      <Square clsName="o" />
+                    </>
+                  ) : (
+                    <>
+                      <Square clsName={winner} />
+                    </>
+                  )}
+                </motion.div>
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{
+                    scale: 1,
+                    transition: { delay: 1.5, duration: 0.3 },
+                  }}
+                >
+                  <Button onClick={resetGame} display="Play Again" />
+                  <Button onClick={backHome} display="Exit" />
+                </motion.div>
               </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-      {contextHolder}
-    </div>
+          )}
+        </AnimatePresence>
+        {contextHolder}
+      </div>
+    </>
   );
 }
 
