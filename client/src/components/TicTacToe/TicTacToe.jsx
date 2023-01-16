@@ -82,7 +82,6 @@ function TicTacToe({ match }) {
     if (squares[index] || winner) {
       return;
     }
-    //console.log("click");
     if (clientMatch.turn === clientMatch.me) {
       socket.emit("update-server-game", clientMatch, index);
     }
@@ -108,12 +107,10 @@ function TicTacToe({ match }) {
 
       const notMe =
         matchReset.me === "x" ? matchReset.challenged.username : matchReset.challenger.username;
-      console.log("New match", matchReset);
       if (readyPlayers === 1) {
         socket.emit("reset-game", matchReset);
       } else {
         socket.emit("play-again", matchReset);
-        //RENDER WAITING FOR OTHER PLAYER ALERT
         message.loading(`Waiting for ${notMe} to play again`, 0);
       }
     }

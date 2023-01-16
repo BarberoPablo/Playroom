@@ -6,7 +6,7 @@ import { socket } from "../../configuration";
 
 function Chat() {
   const [message, setMessage] = useState("");
-  const [room, setRoom] = useState("");
+  const [room, setRoom] = useState("general");
   const storage = window.localStorage;
   const [username, setUsername] = useState(storage.getItem("username"));
   const [messages, setMessages] = useState([]);
@@ -21,8 +21,19 @@ function Chat() {
     var chatHistory = document.getElementById("messageBody");
     chatHistory.scrollTop = chatHistory.scrollHeight;
 
+    //  Connect to room when match starts
+    const connectToRoom = (room) => {
+      setRoom(room);
+      //  Clear out all messages
+      setMessages(["You are now connected to a different chat room"]);
+    };
+
+    socket.on("chatroom-connect", connectToRoom);
+
+    //  Unmount component
     return () => {
       socket.off("message", receiveMessage);
+      socket.off("chatroom-connect", connectToRoom);
     };
   }, [messages.length]);
 
@@ -31,25 +42,11 @@ function Chat() {
     setMessage(e.target.value);
   };
 
-  const handleRoom = (e) => {
-    e.preventDefault();
-    setRoom(e.target.value);
-  };
-
   const handleSubmitMessage = (e) => {
     e.preventDefault();
     if (message !== "") {
       socket.emit("message", message, username, room);
       setMessage("");
-    }
-  };
-
-  const handleJoinRoom = (e) => {
-    e.preventDefault();
-    if (room !== "") {
-      socket.emit("join-room", room, (message) => {
-        setMessages([...messages, message]);
-      });
     }
   };
 
@@ -82,19 +79,6 @@ function Chat() {
             type="text"
             onChange={(e) => handleMessage(e)}
           />
-        </form>
-
-        <form onSubmit={(e) => handleJoinRoom(e)}>
-          <Input
-            className="roomInput"
-            placeholder="Join room"
-            style={inputStyle(90)}
-            value={room}
-            type="text"
-            onChange={(e) => handleRoom(e)}
-          />
-          {/* <input value={room} type="text" onChange={(e) => handleRoom(e)} /> */}
-          {/* <button>Join</button> */}
         </form>
       </div>
     </div>

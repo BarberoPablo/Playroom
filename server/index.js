@@ -39,9 +39,11 @@ users:{
 */
 const users = {};
 const matches = {};
+const defaultRoom = "general";
 
 io.on("connection", (socket) => {
   console.log(`USER CONNECTED: ${socket.id}`);
+  socket.join(defaultRoom);
 
   //  User creation
   socket.on("new-username", (username) => {
@@ -64,6 +66,7 @@ io.on("connection", (socket) => {
 
   //  Join room
   socket.on("join-room", (room) => {
+    socket.leave(defaultRoom);
     socket.join(room);
   });
 
@@ -99,14 +102,9 @@ io.on("connection", (socket) => {
   });
 
   socket.on("challenge-accepted", (match) => {
-    //  Connect challenged user to room
-    //  Connect challenger user to room
-    //  Say to both users to render the game
-    socket.join(match.room);
-
+    //  Tell challenger to connect to room and both users to join the new chat
     io.to(match.challenger.id).emit("join-playroom", match);
-
-    io.to(match.challenger.id, socket.id).emit("play", match);
+    io.to(match.challenger.id).to(match.challenged.id).emit("chatroom-connect", match.room);
   });
 
   socket.on("challenge-canceled", () => {
@@ -166,12 +164,11 @@ io.on("connection", (socket) => {
 
     //  Stop user ongoing match
     const ongoingMatch = Object.keys(matches).find((match) => match.includes(socket.id));
+
     if (ongoingMatch) {
-      console.log("ongoing match destroyed", ongoingMatch);
       const onlinePlayerId = ongoingMatch.replace(socket.id, "");
-      console.log("onlinePlayer", onlinePlayerId);
       //  send message to second user to disconnect from socket and destroy match
-      //delete matches[ongoingMatch];
+      delete matches[ongoingMatch];
       io.to(onlinePlayerId).emit("opponent-disconnected");
     }
     socket.broadcast.emit("new-online-user", users);
