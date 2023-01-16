@@ -1,3 +1,4 @@
+require("dotenv").config();
 const configuration = {
   PORT: process.env.PORT || 3001,
   SERVER: "http://localhost:3000",
