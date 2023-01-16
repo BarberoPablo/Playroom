@@ -4,7 +4,6 @@ const morgan = require("morgan");
 const cors = require("cors");
 const http = require("http");
 const configuration = require("./config.js");
-const PORT = 3001;
 
 //  Convierto la aplicacion de express en un servidor http y lo recibe el wss
 const app = express();
