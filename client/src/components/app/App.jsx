@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Breadcrumb, Layout, Modal, theme, message, Button } from "antd";
-import Chat from "../Chat/Chat";
+import Chat from "../chat/Chat";
 import { useNavigate } from "react-router-dom";
 import TicTacToe from "../TicTacToe/TicTacToe";
 import { socket } from "../../configuration";
