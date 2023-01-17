@@ -5,12 +5,14 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "serve": "npm run build && vite preview",
+    "start": "vite start",
+    "serve": "railway start",
     "preview": "vite preview"
   },
   "dependencies": {
     "antd": "^5.0.7",
     "framer-motion": "^8.0.2",
+    "railway": "^2.0.17",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.4.5",
