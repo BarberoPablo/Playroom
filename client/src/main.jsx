@@ -7,13 +7,11 @@ import Home from "./components/home/Home";
 import "./main.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/play" element={<App />} />
-        <Route path="/chat" element={<Chat />} />
-      </Routes>
-    </BrowserRouter>
-  </React.StrictMode>
+  <BrowserRouter>
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/play" element={<App />} />
+      <Route path="/chat" element={<Chat />} />
+    </Routes>
+  </BrowserRouter>
 );
