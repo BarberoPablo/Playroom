@@ -36,7 +36,7 @@ const App = () => {
     navigate("/");
   };
 
-  /* useEffect(() => {
+  useEffect(() => {
     const username = storage.getItem("username");
 
     if (!username) {
@@ -44,7 +44,7 @@ const App = () => {
     } else {
       socket.emit("new-username", username);
     }
-  }, []); */
+  }, []);
 
   //  ONLINE USERS
   useEffect(() => {
