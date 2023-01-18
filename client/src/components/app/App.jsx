@@ -82,6 +82,7 @@ const App = () => {
     //  Challenge user
     const incomingChallenge = (match) => {
       //  Match with room
+      console.log("viene", match);
       setMatch(match);
       setModalText(
         `The player ${match.challenger.username} has challenge you to a game of ${match.game}`
@@ -100,9 +101,6 @@ const App = () => {
 
     const joinPlaroom = (incomingMatch) => {
       //  Challenger now has access the match and connects to room
-      const challangerMatch = { ...incomingMatch, me: "x" };
-      setMatch(challangerMatch);
-
       socket.emit("join-room", incomingMatch.room);
 
       setRenderGame(incomingMatch.game);
@@ -164,6 +162,7 @@ const App = () => {
   }, []);
 
   const closeModal = () => {
+    setModalText({});
     setOpenChallengeModal(false);
     socket.emit("challenge-denied", match);
   };
@@ -185,16 +184,36 @@ const App = () => {
 
   const cancelChallenge = (e) => {
     e.preventDefault();
+    setMatch({});
     messageApi.destroy();
     setPendingResponse(false);
-    socket.emit("challenge-canceled");
+    socket.emit("challenge-canceled", match);
   };
 
   const handleChallengeUser = (e, user) => {
     e.preventDefault();
     if (!pendingResponse) {
-      socket.emit("challenge-user", gameSelected, user, storage.getItem("username"));
+      //  Match creation
+      const match = {
+        turn: "x",
+        room: socket.id + user.id,
+        game: gameSelected,
+        challenged: {
+          id: user.id,
+          username: user.username,
+        },
+        challenger: {
+          id: socket.id,
+          username: storage.getItem("username"),
+        },
+        me: "x",
+      };
+      setMatch(match);
+
+      socket.emit("challenge-user", match);
+
       setPendingResponse(true);
+
       messageApi.open({
         type: "loading",
         content: (

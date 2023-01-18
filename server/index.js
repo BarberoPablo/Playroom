@@ -66,25 +66,10 @@ io.on("connection", (socket) => {
   });
 
   //  Challenge user
-  socket.on("challenge-user", (game, challenged, username) => {
-    //  Match creation
-    const match = {
-      turn: "x",
-      //match.challenger.id + match.challenged.id
-      room: socket.id + challenged.id,
-      game,
-      challenged: {
-        id: challenged.id,
-        username: challenged.username,
-      },
-      challenger: {
-        id: socket.id,
-        username,
-      },
-    };
-    // Store match in matches
-    matches[match.room] = match;
-    io.to(challenged.id).emit("challenge-user", { ...match, me: "o" });
+  socket.on("challenge-user", (match) => {
+    console.log("users", users);
+    console.log("match", match);
+    io.to(match.challenged.id).emit("challenge-user", { ...match, me: "o" });
   });
 
   socket.on("challenge-denied", (match) => {
@@ -92,19 +77,15 @@ io.on("connection", (socket) => {
   });
 
   socket.on("challenge-accepted", (match) => {
+    //  Store match
+    matches[match.room] = match;
     //  Tell challenger to connect to room and both users to join the new chat
     io.to(match.challenger.id).emit("join-playroom", match);
     io.to(match.challenger.id).to(match.challenged.id).emit("chatroom-connect", match.room);
   });
 
-  socket.on("challenge-canceled", () => {
-    let match = false;
-    Object.keys(matches).forEach((matchId) => {
-      match = matchId.includes(socket.id) ? matchId : false;
-    });
-
-    const challenged = matches[match].challenged.id;
-    io.to(challenged).emit("close-modal");
+  socket.on("challenge-canceled", (match) => {
+    io.to(match.challenged.id).emit("close-modal");
   });
 
   //  TicTacToe events
