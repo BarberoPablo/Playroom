@@ -42,7 +42,7 @@ const App = () => {
     if (!username) {
       navigate("/");
     } else {
-      socket.emit("new-username", username);
+      socket.emit("new-username", username, false);
     }
   }, []);
 
@@ -92,23 +92,25 @@ const App = () => {
 
     socket.on("challenge-user", incomingChallenge);
 
-    //  Cancel challenge
+    //  Challenge CANCELED
     const cancelChallenge = () => {
       setOpenChallengeModal(false);
     };
 
     socket.on("close-modal", cancelChallenge);
 
+    //  Challenged ACCEPTED
     const joinPlaroom = (incomingMatch) => {
-      //  Challenger now has access the match and connects to room
       socket.emit("join-room", incomingMatch.room);
+
+      socket.emit("new-username", storage.getItem("username"), true);
 
       setRenderGame(incomingMatch.game);
     };
 
     socket.on("join-playroom", joinPlaroom);
 
-    //  Denied
+    //  Challenge DENIED
     const challengeDenied = (match) => {
       messageApi.destroy();
       setPendingResponse(false);
@@ -171,6 +173,8 @@ const App = () => {
     //  Connect to room and tell challenger to connect to room
     socket.emit("join-room", match.room);
     socket.emit("challenge-accepted", match);
+    //  User now is playing, change state in server
+    socket.emit("new-username", storage.getItem("username"), true);
 
     setOpenChallengeModal(false);
     setRenderGame(match.game);
@@ -187,14 +191,14 @@ const App = () => {
     setMatch({});
     messageApi.destroy();
     setPendingResponse(false);
-    socket.emit("challenge-canceled", match);
+    socket.emit("challenge-canceled");
   };
 
   const handleChallengeUser = (e, user) => {
     e.preventDefault();
     if (!pendingResponse) {
       //  Match creation
-      const match = {
+      const newMatch = {
         turn: "x",
         room: socket.id + user.id,
         game: gameSelected,
@@ -208,9 +212,9 @@ const App = () => {
         },
         me: "x",
       };
-      setMatch(match);
+      setMatch(newMatch);
 
-      socket.emit("challenge-user", match);
+      socket.emit("challenge-user", newMatch);
 
       setPendingResponse(true);
 
@@ -291,11 +295,10 @@ const App = () => {
                     </button>
                   ))}
                 <h1>Challenge a user!</h1>
-                {
-                  //challengeUserButton
-                  onlineUsers.length > 0 &&
-                    onlineUsers.map((user) => {
-                      return (
+                {onlineUsers.length > 0 &&
+                  onlineUsers.map((user) => {
+                    return (
+                      !user.isPlaying && (
                         <button
                           disabled={challengeUserButton}
                           key={user.id}
@@ -304,9 +307,20 @@ const App = () => {
                         >
                           {user.username}
                         </button>
-                      );
-                    })
-                }
+                      )
+                    );
+                  })}
+                <h1>Users already playing</h1>
+                {onlineUsers.length > 0 &&
+                  onlineUsers.map((user) => {
+                    return (
+                      user.isPlaying && (
+                        <button disabled={true} key={user.id + 1} value={user.username}>
+                          {user.username}
+                        </button>
+                      )
+                    );
+                  })}
                 {contextHolder}
               </div>
             )}

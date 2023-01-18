@@ -36,10 +36,16 @@ io.on("connection", (socket) => {
   socket.join(defaultRoom);
 
   //  User creation
-  socket.on("new-username", (username) => {
-    /* users[username] = socket.id; */
+  socket.on("new-username", (username, isPlaying) => {
     const id = socket.id;
-    users[id] = { username, id };
+    if (isPlaying) {
+      //  Is not a new user (already exists)
+      users[id].isPlaying = true;
+    } else {
+      //  New user
+      users[id] = { username, id, isPlaying };
+    }
+
     socket.broadcast.emit("new-online-user", users);
   });
 
@@ -67,8 +73,7 @@ io.on("connection", (socket) => {
 
   //  Challenge user
   socket.on("challenge-user", (match) => {
-    console.log("users", users);
-    console.log("match", match);
+    matches[match.room] = match;
     io.to(match.challenged.id).emit("challenge-user", { ...match, me: "o" });
   });
 
@@ -84,8 +89,11 @@ io.on("connection", (socket) => {
     io.to(match.challenger.id).to(match.challenged.id).emit("chatroom-connect", match.room);
   });
 
-  socket.on("challenge-canceled", (match) => {
-    io.to(match.challenged.id).emit("close-modal");
+  socket.on("challenge-canceled", () => {
+    const match = Object.keys(matches).find((match) => match.includes(socket.id));
+    const userId = match.replace(socket.id, "");
+    delete matches[match];
+    io.to(userId).emit("close-modal");
   });
 
   //  TicTacToe events
