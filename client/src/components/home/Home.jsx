@@ -25,7 +25,7 @@ const Home = () => {
   const handleSubmit = () => {
     if (username !== "" && username !== "Please select a name" && username.length <= 20) {
       storage.setItem("username", username);
-      socket.emit("new-username", username);
+      socket.emit("new-username", username, false);
 
       setNewUsername(!newUsername);
     } else {

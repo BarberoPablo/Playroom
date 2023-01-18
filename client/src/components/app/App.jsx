@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Breadcrumb, Layout, Modal, theme, message, Button } from "antd";
-import Chat from "../Chat/Chat";
+import Chat from "../chat/Chat";
 import { useNavigate } from "react-router-dom";
 import TicTacToe from "../TicTacToe/TicTacToe";
 import { socket } from "../../configuration";
@@ -42,7 +42,7 @@ const App = () => {
     if (!username) {
       navigate("/");
     } else {
-      socket.emit("new-username", username);
+      socket.emit("new-username", username, false);
     }
   }, []);
 
@@ -82,6 +82,7 @@ const App = () => {
     //  Challenge user
     const incomingChallenge = (match) => {
       //  Match with room
+      console.log("viene", match);
       setMatch(match);
       setModalText(
         `The player ${match.challenger.username} has challenge you to a game of ${match.game}`
@@ -91,26 +92,25 @@ const App = () => {
 
     socket.on("challenge-user", incomingChallenge);
 
-    //  Cancel challenge
+    //  Challenge CANCELED
     const cancelChallenge = () => {
       setOpenChallengeModal(false);
     };
 
     socket.on("close-modal", cancelChallenge);
 
+    //  Challenged ACCEPTED
     const joinPlaroom = (incomingMatch) => {
-      //  Challenger now has access the match and connects to room
-      const challangerMatch = { ...incomingMatch, me: "x" };
-      setMatch(challangerMatch);
-
       socket.emit("join-room", incomingMatch.room);
+
+      socket.emit("new-username", storage.getItem("username"), true);
 
       setRenderGame(incomingMatch.game);
     };
 
     socket.on("join-playroom", joinPlaroom);
 
-    //  Denied
+    //  Challenge DENIED
     const challengeDenied = (match) => {
       messageApi.destroy();
       setPendingResponse(false);
@@ -164,6 +164,7 @@ const App = () => {
   }, []);
 
   const closeModal = () => {
+    setModalText({});
     setOpenChallengeModal(false);
     socket.emit("challenge-denied", match);
   };
@@ -172,6 +173,8 @@ const App = () => {
     //  Connect to room and tell challenger to connect to room
     socket.emit("join-room", match.room);
     socket.emit("challenge-accepted", match);
+    //  User now is playing, change state in server
+    socket.emit("new-username", storage.getItem("username"), true);
 
     setOpenChallengeModal(false);
     setRenderGame(match.game);
@@ -185,6 +188,7 @@ const App = () => {
 
   const cancelChallenge = (e) => {
     e.preventDefault();
+    setMatch({});
     messageApi.destroy();
     setPendingResponse(false);
     socket.emit("challenge-canceled");
@@ -193,8 +197,27 @@ const App = () => {
   const handleChallengeUser = (e, user) => {
     e.preventDefault();
     if (!pendingResponse) {
-      socket.emit("challenge-user", gameSelected, user, storage.getItem("username"));
+      //  Match creation
+      const newMatch = {
+        turn: "x",
+        room: socket.id + user.id,
+        game: gameSelected,
+        challenged: {
+          id: user.id,
+          username: user.username,
+        },
+        challenger: {
+          id: socket.id,
+          username: storage.getItem("username"),
+        },
+        me: "x",
+      };
+      setMatch(newMatch);
+
+      socket.emit("challenge-user", newMatch);
+
       setPendingResponse(true);
+
       messageApi.open({
         type: "loading",
         content: (
@@ -272,11 +295,10 @@ const App = () => {
                     </button>
                   ))}
                 <h1>Challenge a user!</h1>
-                {
-                  //challengeUserButton
-                  onlineUsers.length > 0 &&
-                    onlineUsers.map((user) => {
-                      return (
+                {onlineUsers.length > 0 &&
+                  onlineUsers.map((user) => {
+                    return (
+                      !user.isPlaying && (
                         <button
                           disabled={challengeUserButton}
                           key={user.id}
@@ -285,9 +307,20 @@ const App = () => {
                         >
                           {user.username}
                         </button>
-                      );
-                    })
-                }
+                      )
+                    );
+                  })}
+                <h1>Users already playing</h1>
+                {onlineUsers.length > 0 &&
+                  onlineUsers.map((user) => {
+                    return (
+                      user.isPlaying && (
+                        <button disabled={true} key={user.id + 1} value={user.username}>
+                          {user.username}
+                        </button>
+                      )
+                    );
+                  })}
                 {contextHolder}
               </div>
             )}

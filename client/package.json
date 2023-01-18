@@ -1,11 +1,11 @@
 {
   "name": "client",
-  "private": true,
   "version": "0.0.0",
-  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "start": "npx http-server ./dist",
+    "serve": "railway start",
     "preview": "vite preview"
   },
   "dependencies": {
