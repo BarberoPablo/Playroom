@@ -4,6 +4,7 @@ import { Input } from "antd";
 import { socket } from "../../configuration";
 import "./Home.css";
 import welcomeVideo from "../../assets/welcomeVideo.mp4";
+import AvatarButton from "./components/AvatarButton";
 
 const Home = () => {
   const [username, setUsername] = useState("");
@@ -22,16 +23,18 @@ const Home = () => {
     setUsername(e.target.value);
   };
 
-  const handleSubmit = () => {
+  function handleSubmit(avatarClicked) {
     if (username !== "" && username !== "Please select a name" && username.length <= 20) {
       storage.setItem("username", username);
+      storage.setItem("avatar", avatarClicked);
+      console.log("asdsad", avatarClicked);
       socket.emit("new-username", username, false);
 
       setNewUsername(!newUsername);
     } else {
       setUsername("Please select a name");
     }
-  };
+  }
 
   return (
     <div className="home-main">
@@ -48,8 +51,8 @@ const Home = () => {
           maxLength={20}
           autoFocus
           onChange={onChange}
-          onPressEnter={handleSubmit}
         />
+        <AvatarButton submit={handleSubmit} />
       </div>
     </div>
   );
