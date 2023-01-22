@@ -27,8 +27,8 @@ const Home = () => {
     if (username !== "" && username !== "Please select a name" && username.length <= 20) {
       storage.setItem("username", username);
       storage.setItem("avatar", avatarClicked);
-      console.log("asdsad", avatarClicked);
-      socket.emit("new-username", username, false);
+
+      socket.emit("new-username", username, avatarClicked, false);
 
       setNewUsername(!newUsername);
     } else {

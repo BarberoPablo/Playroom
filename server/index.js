@@ -36,14 +36,14 @@ io.on("connection", (socket) => {
   socket.join(defaultRoom);
 
   //  User creation
-  socket.on("new-username", (username, isPlaying) => {
+  socket.on("new-username", (username, avatar, isPlaying) => {
     const id = socket.id;
     if (isPlaying) {
       //  Is not a new user (already exists)
       users[id].isPlaying = true;
     } else {
       //  New user
-      users[id] = { username, id, isPlaying };
+      users[id] = { username, id, avatar, isPlaying };
     }
 
     socket.broadcast.emit("new-online-user", users);

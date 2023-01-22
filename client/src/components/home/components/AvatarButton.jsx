@@ -11,11 +11,13 @@ const AvatarButton = ({ submit }) => {
   const showModal = () => {
     setOpen(true);
   };
+
   const handleOk = (e) => {
     console.log(e);
     setOpen(false);
     submit(avatarClicked);
   };
+
   const handleCancel = (e) => {
     console.log(e);
     setOpen(false);
