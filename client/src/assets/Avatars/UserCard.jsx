@@ -17,7 +17,7 @@ const UserCard = ({ user, size, me, click, playing }) => {
       );
     } else {
       return (
-        <div className="conteiner">
+        <div className="avatar-conteiner">
           <Avatar
             className="avatar-image"
             size={size}

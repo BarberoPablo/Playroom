@@ -6,10 +6,12 @@
   color: white;
 }
 
-.conteiner {
+.avatar-conteiner {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100vh;
+  height: 100%;
 }
 
 .avatar-image {
@@ -17,6 +19,7 @@
   border: 1px solid rgba(0, 0, 0, 0.4);
   background-color: rgba(0, 0, 0, 0.4);
   border-radius: 100px;
+  /* overflow: scroll; */
 }
 
 

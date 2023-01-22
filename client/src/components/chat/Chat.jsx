@@ -61,7 +61,7 @@ function Chat() {
   };
 
   return (
-    <div className="conteiner">
+    <div className="chat-conteiner">
       <div className="messages" id="messageBody">
         {messages.length > 0 &&
           messages.map((message, index) => (
