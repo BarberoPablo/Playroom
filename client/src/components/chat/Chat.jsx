@@ -55,7 +55,7 @@ function Chat() {
       position: "absolute",
       left: 0,
       bottom,
-      color: "red",
+      color: "black",
       background: "rgba(255, 255, 255, 0.6)",
     };
   };

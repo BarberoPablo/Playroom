@@ -7,6 +7,7 @@ import TicTacToe from "../TicTacToe/TicTacToe";
 import { socket } from "../../configuration";
 import "./App.css";
 import UserCard from "../../assets/Avatars/UserCard";
+import { allGames } from "../../assets/Games/games";
 
 const App = () => {
   const { Header, Content, Footer, Sider } = Layout;
@@ -18,6 +19,7 @@ const App = () => {
   const [pendingResponse, setPendingResponse] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const [renderGame, setRenderGame] = useState("");
+  const [lastGameClicked, setLastGameClicked] = useState("");
   const storage = window.localStorage;
   const username = storage.getItem("username");
   const avatar = storage.getItem("avatar");
@@ -82,7 +84,6 @@ const App = () => {
     //  Challenge user
     const incomingChallenge = (match) => {
       //  Match with room
-      console.log("viene", match);
       setMatch(match);
       setModalText(
         `The player ${match.challenger.username} has challenge you to a game of ${match.game}`
@@ -180,9 +181,27 @@ const App = () => {
     setRenderGame(match.game);
   };
 
-  const handlePlayGame = (e) => {
+  const handlePlayGame = (e, game) => {
     e.preventDefault();
-    setGameSelected(e.target.innerHTML);
+    message.destroy();
+
+    const oldGameClicked = document.getElementById(lastGameClicked + "click");
+
+    const newGameClicked = document.getElementById(game + "click");
+    console.log(game + "click");
+    console.log("newnew", newGameClicked);
+    if (lastGameClicked !== "") {
+      oldGameClicked.style.border = "";
+    }
+    newGameClicked.style.border = "5px solid #ffb703";
+
+    setLastGameClicked(game);
+
+    if (allGames[game].available) {
+      setGameSelected(game);
+    } else {
+      message.error(`${game} will be available soon, please select a different game`, 4);
+    }
   };
 
   const cancelChallenge = (e) => {
@@ -195,6 +214,7 @@ const App = () => {
 
   const handleChallengeUser = (e, user) => {
     e.preventDefault();
+    console.log("clicked");
     if (gameSelected) {
       if (!pendingResponse) {
         //  Match creation
@@ -232,6 +252,7 @@ const App = () => {
         });
       }
     } else {
+      message.destroy();
       message.error("First select a game to play!", 2.5);
     }
   };
@@ -251,7 +272,6 @@ const App = () => {
         <Header
           className="site-header"
           style={{
-            //background: (100, 100, 100, 0.5),
             backgroundColor: "transparent",
             width: "100% ",
           }}
@@ -269,7 +289,6 @@ const App = () => {
               icon={<UserOutlined />}
               onClick={(e) => handleUsernameChange(e)}
             >
-              {/* primary ghost dashed link text default */}
               {username}
             </Button>
           </Tooltip>
@@ -292,58 +311,47 @@ const App = () => {
             ) : (
               <div>
                 <Space direction="vertical" size="large" className="Space">
-                  <Card size="small" className="Card">
-                    <div className="game-section">
-                      <h1>Select a game to play!</h1>
+                  <Card size="small" className="games">
+                    <h2 className="games-title">Select a game to play!</h2>
+
+                    <div className="allGames">
                       {Object.keys(games).length > 0 &&
                         Object.keys(games).map((game) => (
-                          <button key={game} onClick={(e) => handlePlayGame(e)}>
-                            {game}
-                          </button>
+                          <div className="card" key={game} onClick={(e) => handlePlayGame(e, game)}>
+                            <img
+                              id={`${game}click`}
+                              src={allGames[game].image}
+                              alt="Background Image"
+                            />
+                            <div className="card-content">
+                              <h2>
+                                {game}
+                                {!allGames[game].available && " (available soon)"}
+                              </h2>
+                            </div>
+                          </div>
                         ))}
                     </div>
                   </Card>
 
-                  <Card size="large" className="Card">
+                  <Card size="large" className="user-card">
+                    <h2 className="online-users-title">Online users </h2>
                     <div className="online-users-section">
-                      <h1>Challenge a user!</h1>
                       {onlineUsers.length > 0 &&
                         onlineUsers.map((user) => {
                           return (
-                            !user.isPlaying && (
-                              <UserCard
-                                user={user}
-                                key={user.id}
-                                size={180}
-                                click={handleChallengeUser}
-                              />
-                            )
+                            <UserCard
+                              className="online-user"
+                              user={user}
+                              key={user.id}
+                              size={180}
+                              click={handleChallengeUser}
+                              playing={user.isPlaying}
+                            />
                           );
                         })}
                     </div>
                   </Card>
-
-                  {onlineUsers.length !== 0 && (
-                    <Card className="Card" size="">
-                      <div className="playing-users-section">
-                        <h1>Users already playing</h1>
-                        {onlineUsers.length > 0 &&
-                          onlineUsers.map((user) => {
-                            return (
-                              user.isPlaying && (
-                                <UserCard
-                                  user={user}
-                                  key={user.id + 1}
-                                  size={90}
-                                  click={handleChallengeUser}
-                                  me={true}
-                                />
-                              )
-                            );
-                          })}
-                      </div>
-                    </Card>
-                  )}
 
                   {contextHolder}
                 </Space>
@@ -368,8 +376,7 @@ const App = () => {
           }}
         >
           <GithubOutlined style={{ fontSize: "25px" }} />{" "}
-          <LinkedinOutlined style={{ fontSize: "25px" }} />
-          Created by Pablo Barbero
+          <LinkedinOutlined style={{ fontSize: "25px" }} /> Created by Pablo Barbero
         </Footer>
       </Layout>
     </Layout>
