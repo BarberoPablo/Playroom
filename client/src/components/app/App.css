@@ -1,8 +1,31 @@
 .site-layout {
-  background-image: url(../../assets/helados.png);
+  /* background-image: url(../../assets/helados.png); */
+  background-color: #abd2fa;
   display: flex;
   min-height: 100vh;
   background-position: center;
   align-items: center;
   /* background-size: cover; */
+}
+
+.Space {
+  display: "flex";
+  align-items: center;
+  text-align: "center";
+
+
+  justify-content: center;
+  align-items: center;
+
+}
+
+.Card {
+  background-color: #3D518C;
+  color: white;
+  width: 100vh;
+
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
 }
