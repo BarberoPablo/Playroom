@@ -1,25 +1,12 @@
 .site-layout {
-  /* background-image: url(../../assets/helados.png); */
   background-color: #abd2fa;
   display: flex;
   min-height: 100vh;
   background-position: center;
   align-items: center;
-  /* background-size: cover; */
 }
 
-.Space {
-  display: "flex";
-  align-items: center;
-  text-align: "center";
-
-
-  justify-content: center;
-  align-items: center;
-
-}
-
-.Card {
+.games {
   background-color: #3D518C;
   color: white;
   width: 100vh;
@@ -28,4 +15,51 @@
   justify-content: center;
   align-items: center;
 
+}
+
+.online-users-title {
+  position: absolute;
+  top: 0;
+}
+
+.games-title {
+  margin-top: -10px;
+}
+
+.online-users-section {
+  display: flex;
+}
+
+.allGames {
+  display: flex;
+  justify-content: space-between;
+  /* center elements horizontally */
+  align-items: center;
+}
+
+.card {
+  position: relative;
+  width: 49%;
+  height: 180px;
+}
+
+.card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.card-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+}
+
+.site-footer {
+  border-top: 1px solid;
+  margin-top: -20px;
 }

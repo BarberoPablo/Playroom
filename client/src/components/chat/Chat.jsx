@@ -55,13 +55,13 @@ function Chat() {
       position: "absolute",
       left: 0,
       bottom,
-      color: "red",
+      color: "black",
       background: "rgba(255, 255, 255, 0.6)",
     };
   };
 
   return (
-    <div className="conteiner">
+    <div className="chat-conteiner">
       <div className="messages" id="messageBody">
         {messages.length > 0 &&
           messages.map((message, index) => (

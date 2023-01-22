@@ -123,8 +123,7 @@ function TicTacToe({ match }) {
   return (
     <>
       <div className="tic-tac-toe">
-        <h1> TIC-TAC-TOE </h1>
-        <h1> YOU ARE {clientMatch.me.toUpperCase()} </h1>
+        <h1 className="me"> YOU ARE "{clientMatch.me.toUpperCase()}" </h1>
         <div className="game">
           {Array.from("012345678").map((ind) => (
             <Square

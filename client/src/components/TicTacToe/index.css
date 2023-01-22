@@ -11,11 +11,12 @@ body {
 
 .tic-tac-toe {
     width: fit-content;
-    margin: 40px auto;
+    margin: 0px auto;
     text-align: center;
 }
 
 .tic-tac-toe h1 {
+
     color: #222;
     font-size: 2em;
 }

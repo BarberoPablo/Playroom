@@ -20,9 +20,10 @@ app.use(morgan("dev"));
 
 /* 
 users:{
-  socketid:{
-    id: "9woiuegn9342",
-    username: "Player 1"
+  [socket.id]:{
+    id: STRING,
+    username: STRING,
+    isPlaying: BOOLEAN,
   },
   ...
 }
