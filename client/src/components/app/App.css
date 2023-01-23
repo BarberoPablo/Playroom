@@ -6,28 +6,23 @@
   align-items: center;
 }
 
-.games {
+.card-section {
   background-color: #3D518C;
   color: white;
-  width: 100vh;
-
+  width: 700px;
+  height: 100%;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-
 }
 
-.online-users-title {
+/* .online-users-title {
   position: absolute;
-  top: 0;
-}
+  top: -5px;
+} */
 
 .games-title {
   margin-top: -10px;
-}
-
-.online-users-section {
-  display: flex;
 }
 
 .allGames {
@@ -35,6 +30,12 @@
   justify-content: space-between;
   /* center elements horizontally */
   align-items: center;
+}
+
+.online-users-section {
+  display: flex;
+  justify-content: space-evenly;
+  /* center elements horizontally */
 }
 
 .card {
@@ -57,6 +58,12 @@
   padding: 10px;
   background-color: rgba(0, 0, 0, 0.5);
   color: white;
+}
+
+.users-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .site-footer {

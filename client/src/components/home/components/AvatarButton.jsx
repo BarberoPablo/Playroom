@@ -13,13 +13,11 @@ const AvatarButton = ({ submit }) => {
   };
 
   const handleOk = (e) => {
-    console.log(e);
     setOpen(false);
     submit(avatarClicked);
   };
 
   const handleCancel = (e) => {
-    console.log(e);
     setOpen(false);
     setOkButton({ disabled: true });
     document.getElementById("avatar_" + avatarClicked).style.border = "";

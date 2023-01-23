@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Layout, Modal, theme, message, Button, Tooltip, Space, Card } from "antd";
+import { Layout, Modal, theme, message, Button, Tooltip, Space, Card, Pagination } from "antd";
 import { UserOutlined, GithubOutlined, LinkedinOutlined } from "@ant-design/icons";
 import Chat from "../chat/Chat";
 import { useNavigate } from "react-router-dom";
@@ -24,6 +24,8 @@ const App = () => {
   const username = storage.getItem("username");
   const avatar = storage.getItem("avatar");
   let navigate = useNavigate();
+  const [paginationUsers, setPaginationUsers] = useState([]);
+  const [actualPage, setActualPage] = useState(1);
 
   const games = {
     TicTacToe: <TicTacToe match={match} />,
@@ -56,12 +58,21 @@ const App = () => {
     const getOnlineUsers = (users) => {
       const myUsername = storage.getItem("username");
       const usersOnline = [];
+      const start = (actualPage - 1) * 3;
+
       for (const user in users) {
         if (users[user].username !== myUsername) {
           usersOnline.push(users[user]);
         }
       }
       setOnlineUsers(usersOnline);
+
+      //  Amount of pages righ now
+      if (Math.ceil(usersOnline.length / 3) < actualPage) {
+        setActualPage(actualPage - 1 || 1);
+      }
+
+      setPaginationUsers(usersOnline.slice(start, start + 3));
     };
 
     socket.on("online-users", getOnlineUsers);
@@ -164,6 +175,14 @@ const App = () => {
     };
   }, []);
 
+  //  Pagination
+  const paginationChange = (currentPage) => {
+    const start = (currentPage - 1) * 3;
+
+    setPaginationUsers(onlineUsers.slice(start, start + 3));
+    setActualPage(currentPage);
+  };
+
   const closeModal = () => {
     setModalText({});
     setOpenChallengeModal(false);
@@ -188,8 +207,6 @@ const App = () => {
     const oldGameClicked = document.getElementById(lastGameClicked + "click");
 
     const newGameClicked = document.getElementById(game + "click");
-    console.log(game + "click");
-    console.log("newnew", newGameClicked);
     if (lastGameClicked !== "") {
       oldGameClicked.style.border = "";
     }
@@ -200,6 +217,7 @@ const App = () => {
     if (allGames[game].available) {
       setGameSelected(game);
     } else {
+      setGameSelected(undefined);
       message.error(`${game} will be available soon, please select a different game`, 4);
     }
   };
@@ -214,7 +232,6 @@ const App = () => {
 
   const handleChallengeUser = (e, user) => {
     e.preventDefault();
-    console.log("clicked");
     if (gameSelected) {
       if (!pendingResponse) {
         //  Match creation
@@ -253,7 +270,7 @@ const App = () => {
       }
     } else {
       message.destroy();
-      message.error("First select a game to play!", 2.5);
+      message.error("First select an available game to play!", 2.5);
     }
   };
 
@@ -299,20 +316,14 @@ const App = () => {
             margin: "0 16px",
           }}
         >
-          <div
-            style={{
-              padding: 24,
-              minHeight: 360,
-              //background: colorBgContainer,
-            }}
-          >
+          <div>
             {renderGame ? (
               games[renderGame]
             ) : (
               <div>
                 <Space direction="vertical" size="large" className="Space">
-                  <Card size="small" className="games">
-                    <h2 className="games-title">Select a game to play!</h2>
+                  <Card size="small" className="card-section">
+                    <h2 className="games-title">Select a game to play and challenge a user</h2>
 
                     <div className="allGames">
                       {Object.keys(games).length > 0 &&
@@ -334,24 +345,39 @@ const App = () => {
                     </div>
                   </Card>
 
-                  <Card size="large" className="user-card">
-                    <h2 className="online-users-title">Online users </h2>
-                    <div className="online-users-section">
-                      {onlineUsers.length > 0 &&
-                        onlineUsers.map((user) => {
-                          return (
-                            <UserCard
-                              className="online-user"
-                              user={user}
-                              key={user.id}
-                              size={180}
-                              click={handleChallengeUser}
-                              playing={user.isPlaying}
-                            />
-                          );
-                        })}
-                    </div>
+                  <Card size="large" className="card-section">
+                    {paginationUsers.length > 0 ? (
+                      <div className="online-users-section">
+                        {paginationUsers.length > 0 &&
+                          paginationUsers.map((user, index) => {
+                            return (
+                              <UserCard
+                                className="online-user"
+                                user={user}
+                                key={user.id}
+                                size={180}
+                                click={handleChallengeUser}
+                                playing={user.isPlaying}
+                              />
+                            );
+                          })}
+                      </div>
+                    ) : (
+                      <h2>No users online</h2>
+                    )}
                   </Card>
+
+                  <Pagination
+                    className="users-pagination"
+                    /* defaultCurrent={2} */
+                    current={actualPage}
+                    pageSize={3}
+                    total={onlineUsers.length}
+                    onChange={(currentPage, itemsPerPage) =>
+                      paginationChange(currentPage, itemsPerPage)
+                    }
+                    hideOnSinglePage={true}
+                  />
 
                   {contextHolder}
                 </Space>

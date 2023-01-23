@@ -1,25 +1,14 @@
-.user-card {
-  width: 100vh;
-  align-items: center;
-  justify-content: center;
-  background-color: #3D518C;
-  color: white;
-}
-
 .avatar-conteiner {
   display: flex;
-  align-items: center;
   justify-content: center;
-  width: 100vh;
-  height: 100%;
+  align-items: center;
 }
 
 .avatar-image {
   cursor: pointer;
-  border: 1px solid rgba(0, 0, 0, 0.4);
-  background-color: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(26, 34, 59);
+  background-color: rgba(37, 49, 84);
   border-radius: 100px;
-  /* overflow: scroll; */
 }
 
 
@@ -28,7 +17,7 @@
   display: flex;
   position: absolute;
   bottom: -1px;
-  color: eee;
+  color: #eee;
   align-items: center;
   justify-content: center;
   text-shadow: 2px 0 black, 0 2px black, 2px 0 black, 0 2px black;
