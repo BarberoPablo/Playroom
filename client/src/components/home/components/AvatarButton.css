@@ -1,0 +1,16 @@
+.avatars-modal-home {
+  display: flex;
+}
+
+.home-pagination {
+  display: flex;
+  margin-top: 50px;
+  justify-content: center;
+
+}
+
+.avatars-div-home {
+  display: flex;
+  align-content: center;
+  justify-content: space-evenly;
+}
