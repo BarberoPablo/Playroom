@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "antd";
+import ClockCircleOutlined from "@ant-design/icons/ClockCircleOutlined";
 import { socket } from "../../configuration";
 import "./Home.css";
 import welcomeVideo from "../../assets/welcomeVideo.mp4";
@@ -9,6 +10,8 @@ import AvatarButton from "./components/AvatarButton";
 const Home = () => {
   const [username, setUsername] = useState("");
   const [newUsername, setNewUsername] = useState(false);
+  const [inputStatus, setInputStatus] = useState("");
+  const [inputPrefix, setInputPrefix] = useState("");
   const storage = window.localStorage;
   let navigate = useNavigate();
 
@@ -33,6 +36,8 @@ const Home = () => {
       setNewUsername(!newUsername);
     } else {
       setUsername("Please select a name");
+      setInputStatus("warning");
+      setInputPrefix(<ClockCircleOutlined />);
     }
   }
 
@@ -51,8 +56,11 @@ const Home = () => {
           maxLength={20}
           autoFocus
           onChange={onChange}
+          style={{ color: "red" }}
+          status={inputStatus}
+          prefix={inputPrefix}
         />
-        <AvatarButton submit={handleSubmit} />
+        <AvatarButton className="home-avatar-button" submit={handleSubmit} />
       </div>
     </div>
   );
