@@ -6,7 +6,7 @@
 
 .avatar-image {
   cursor: pointer;
-  border: 1px solid rgba(26, 34, 59);
+  border: 5px solid rgba(26, 34, 59);
   background-color: rgba(37, 49, 84);
   border-radius: 100px;
 }
