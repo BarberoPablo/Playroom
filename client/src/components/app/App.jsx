@@ -72,7 +72,6 @@ const App = () => {
         setActualPage(actualPage - 1 || 1);
       }
 
-      console.log("LALA2", usersOnline.slice(start, start + 3));
       setPaginationUsers(usersOnline.slice(start, start + 3));
     };
 
@@ -179,12 +178,6 @@ const App = () => {
   //  Pagination
   const paginationChange = (currentPage) => {
     const start = (currentPage - 1) * 3;
-    console.log("CurrentPage", currentPage);
-    console.log("Before", paginationUsers);
-    console.log("After", onlineUsers.slice(start, start + 3));
-    console.log("Online users", onlineUsers);
-    console.log("start", start);
-    console.log("end", start + 3);
 
     setPaginationUsers(onlineUsers.slice(start, start + 3));
     setActualPage(currentPage);

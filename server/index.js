@@ -78,8 +78,9 @@ io.on("connection", (socket) => {
     io.to(match.challenged.id).emit("challenge-user", { ...match, me: "o" });
   });
 
-  socket.on("challenge-denied", (match) => {
-    io.to(match.challenger.id).emit("challenge-denied", match);
+  socket.on("challenge-denied", (match, message) => {
+    delete matches[match.room];
+    io.to(match.challenger.id).emit("challenge-denied", message);
   });
 
   socket.on("challenge-accepted", (match) => {
