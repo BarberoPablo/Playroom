@@ -5,8 +5,18 @@ import "./UserCard.css";
 
 const UserCard = ({ user, size, me, click, playing }) => {
   const cardFormat = () => {
+    console.log("user ", user);
     if (me) {
-      return <Avatar size={size} src={avatars[user.avatar]} style={{ borderRadius: "0px" }} />;
+      return (
+        <Avatar
+          size={size}
+          src={avatars[user.avatar]}
+          style={{
+            border: "2px solid rgba(26, 34, 59)",
+            backgroundColor: "rgba(37, 49, 84)",
+          }}
+        />
+      );
     }
 
     if (playing) {
