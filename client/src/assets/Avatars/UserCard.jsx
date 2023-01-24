@@ -21,14 +21,19 @@ const UserCard = ({ user, size, me, click, playing }) => {
 
     if (playing) {
       return (
-        <Tooltip title="User is already playing">
-          <Avatar
-            className="avatar-image"
-            size={size}
-            src={avatars[user.avatar]}
-            style={{ filter: "grayscale(100%)" }}
-          />
-        </Tooltip>
+        <div className="avatar-conteiner">
+          <Tooltip title="User is already playing">
+            <Avatar
+              className="avatar-image"
+              size={size}
+              src={avatars[user.avatar]}
+              style={{ filter: "grayscale(100%)" }}
+            />
+          </Tooltip>
+          <h2 className="avatar-username" onClick={(e) => click(e, user)}>
+            {user.username}
+          </h2>
+        </div>
       );
     } else {
       return (
