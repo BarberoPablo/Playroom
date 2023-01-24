@@ -401,8 +401,17 @@ const App = () => {
             background: (0, 0, 0, 0.5),
           }}
         >
-          <GithubOutlined style={{ fontSize: "25px" }} />{" "}
-          <LinkedinOutlined style={{ fontSize: "25px" }} /> Created by Pablo Barbero
+          <a className="media-link" href="https://github.com/BarberoPablo" target="_blank">
+            <GithubOutlined style={{ fontSize: "25px" }} />{" "}
+          </a>
+          <a
+            className="media-link"
+            href="https://www.linkedin.com/in/barberopablo/"
+            target="_blank"
+          >
+            <LinkedinOutlined style={{ fontSize: "25px" }} />
+          </a>{" "}
+          Created by Pablo Barbero
         </Footer>
       </Layout>
     </Layout>
