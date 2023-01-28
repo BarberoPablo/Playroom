@@ -4,9 +4,9 @@
 ## Alternative link:
 * https://playroom.up.railway.app/
 
-You can connect to both link and play against yourself
+### You can connect to both links and play against yourself to try it out
 
-## Project idea:
+# Project idea:
 
 It is about a web page where connected users can play against each other, the game available right now is "TicTacToe", soon there will be a "Tetris" and a "Draw and guess" game. 
 
